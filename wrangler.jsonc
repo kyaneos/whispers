@@ -1,0 +1,15 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "whispers",
+	"account_id": "bb4a71794bc40011644ca03c7cc340c6",
+	"compatibility_date": "2026-10-01",
+	"compatibility_flags": ["nodejs_compat"],
+	// SvelteKit's adapter writes the server here; static files are served as assets
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"assets": { "binding": "ASSETS", "directory": ".svelte-kit/cloudflare" },
+	// not secret, so they live here; the password is a secret (npx wrangler secret put PB_APP_PASSWORD)
+	"vars": {
+		"PB_URL": "https://sciminds.cloud",
+		"PB_APP_EMAIL": "whispers-app@sciminds.cloud"
+	}
+}

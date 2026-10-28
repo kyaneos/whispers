@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+@plugin "daisyui" {
+	themes: corporate --default;
+}
+
+/* jsPsych screens use the same look as the rest of the app (from telephone-v1) */
+@layer components {
+	.jspsych-display-element {
+		@apply bg-base-100 font-sans text-base-content;
+	}
+	.jspsych-content {
+		@apply mx-auto max-w-3xl px-8 pt-8 pb-16;
+	}
+	.jspsych-content p {
+		@apply mb-6 leading-relaxed;
+	}
+	.jspsych-btn {
+		@apply btn mx-2 btn-lg btn-primary;
+	}
+	.jspsych-content .jspsych-btn-group,
+	.jspsych-content #jspsych-html-button-response-btngroup {
+		@apply mt-12 flex flex-wrap justify-center gap-4;
+	}
+}

@@ -1,0 +1,614 @@
+[
+  {
+    "id": "pbc_whispers_app",
+    "name": "whispers_app",
+    "type": "auth",
+    "system": false,
+    "listRule": null,
+    "viewRule": null,
+    "createRule": null,
+    "updateRule": null,
+    "deleteRule": null,
+    "authRule": "",
+    "manageRule": null,
+    "passwordAuth": {
+      "enabled": true,
+      "identityFields": [
+        "email"
+      ]
+    },
+    "fields": [
+      {
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "help": "",
+        "hidden": false,
+        "id": "text3208210256",
+        "max": 15,
+        "min": 15,
+        "name": "id",
+        "pattern": "^[a-z0-9]+$",
+        "presentable": false,
+        "primaryKey": true,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "cost": 0,
+        "help": "",
+        "hidden": true,
+        "id": "password901924565",
+        "max": 0,
+        "min": 8,
+        "name": "password",
+        "pattern": "",
+        "presentable": false,
+        "required": true,
+        "system": true,
+        "type": "password"
+      },
+      {
+        "autogeneratePattern": "[a-zA-Z0-9]{50}",
+        "help": "",
+        "hidden": true,
+        "id": "text2504183744",
+        "max": 60,
+        "min": 30,
+        "name": "tokenKey",
+        "pattern": "",
+        "presentable": false,
+        "primaryKey": false,
+        "required": true,
+        "system": true,
+        "type": "text"
+      },
+      {
+        "exceptDomains": [],
+        "help": "",
+        "hidden": false,
+        "id": "email3885137012",
+        "name": "email",
+        "onlyDomains": [],
+        "presentable": false,
+        "required": true,
+        "system": true,
+        "type": "email"
+      },
+      {
+        "help": "",
+        "hidden": false,
+        "id": "bool1547992806",
+        "name": "emailVisibility",
+        "presentable": false,
+        "required": false,
+        "system": true,
+        "type": "bool"
+      },
+      {
+        "help": "",
+        "hidden": false,
+        "id": "bool256245529",
+        "name": "verified",
+        "presentable": false,
+        "required": false,
+        "system": true,
+        "type": "bool"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_whispers_app_tokenKey` ON `whispers_app` (`tokenKey`)",
+      "CREATE UNIQUE INDEX `idx_whispers_app_email` ON `whispers_app` (`email`) WHERE `email` != ''"
+    ],
+    "authAlert": {
+      "enabled": false
+    }
+  },
+  {
+    "id": "pbc_whispers_chains",
+    "name": "whispers_chains",
+    "type": "base",
+    "system": false,
+    "listRule": "@request.auth.collectionName = \"whispers_app\"",
+    "viewRule": "@request.auth.collectionName = \"whispers_app\"",
+    "createRule": "@request.auth.collectionName = \"whispers_app\"",
+    "updateRule": "@request.auth.collectionName = \"whispers_app\"",
+    "deleteRule": "@request.auth.collectionName = \"whispers_app\"",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text",
+        "system": true,
+        "primaryKey": true,
+        "required": true,
+        "min": 15,
+        "max": 15,
+        "pattern": "^[a-z0-9]+$",
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "presentable": false
+      },
+      {
+        "name": "chain",
+        "type": "number",
+        "min": 1,
+        "max": null,
+        "onlyInt": true,
+        "required": true,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "test",
+        "type": "bool",
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "order",
+        "type": "number",
+        "min": 1,
+        "max": 4,
+        "onlyInt": true,
+        "required": true,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "generation",
+        "type": "number",
+        "min": 1,
+        "max": 4,
+        "onlyInt": true,
+        "required": true,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "status",
+        "type": "select",
+        "maxSelect": 1,
+        "values": [
+          "open",
+          "claimed",
+          "done"
+        ],
+        "required": true,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "claimed_by",
+        "type": "text",
+        "max": 0,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "claimed_at",
+        "type": "date",
+        "min": "",
+        "max": "",
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "current_text",
+        "type": "text",
+        "max": 20000,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "created",
+        "type": "autodate",
+        "onCreate": true,
+        "onUpdate": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "updated",
+        "type": "autodate",
+        "onCreate": true,
+        "onUpdate": true,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_whispers_chain_test` ON `whispers_chains` (`chain`, `test`)"
+    ]
+  },
+  {
+    "id": "pbc_whispers_responses",
+    "name": "whispers_responses",
+    "type": "base",
+    "system": false,
+    "listRule": "@request.auth.collectionName = \"whispers_app\"",
+    "viewRule": "@request.auth.collectionName = \"whispers_app\"",
+    "createRule": "@request.auth.collectionName = \"whispers_app\"",
+    "updateRule": "@request.auth.collectionName = \"whispers_app\"",
+    "deleteRule": "@request.auth.collectionName = \"whispers_app\"",
+    "fields": [
+      {
+        "name": "id",
+        "type": "text",
+        "system": true,
+        "primaryKey": true,
+        "required": true,
+        "min": 15,
+        "max": 15,
+        "pattern": "^[a-z0-9]+$",
+        "autogeneratePattern": "[a-z0-9]{15}",
+        "hidden": false,
+        "presentable": false
+      },
+      {
+        "name": "pid",
+        "type": "text",
+        "max": 100,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "test",
+        "type": "bool",
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "status",
+        "type": "select",
+        "maxSelect": 1,
+        "values": [
+          "started",
+          "screened_out",
+          "no_slot",
+          "claimed",
+          "abandoned",
+          "passed",
+          "excluded"
+        ],
+        "required": true,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "token",
+        "type": "text",
+        "max": 100,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "user_agent",
+        "type": "text",
+        "max": 300,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "chain_ref",
+        "type": "relation",
+        "collectionId": "pbc_whispers_chains",
+        "cascadeDelete": false,
+        "minSelect": 0,
+        "maxSelect": 1,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "chain",
+        "type": "number",
+        "min": 1,
+        "max": null,
+        "onlyInt": true,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "generation",
+        "type": "number",
+        "min": 1,
+        "max": 4,
+        "onlyInt": true,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "order",
+        "type": "number",
+        "min": 1,
+        "max": 4,
+        "onlyInt": true,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "slot",
+        "type": "text",
+        "max": 100,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "input_text",
+        "type": "text",
+        "max": 20000,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "recall_raw",
+        "type": "text",
+        "max": 20000,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "recall_passed",
+        "type": "text",
+        "max": 20000,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "exclude_reason",
+        "type": "text",
+        "max": 50,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "keystroke_log",
+        "type": "json",
+        "maxSize": 2000000,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "interaction_data",
+        "type": "json",
+        "maxSize": 2000000,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "trials",
+        "type": "json",
+        "maxSize": 5000000,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "consented",
+        "type": "bool",
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "english_fluency",
+        "type": "text",
+        "max": 50,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "screening_passed",
+        "type": "bool",
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "instructions_attempts",
+        "type": "number",
+        "min": 0,
+        "max": null,
+        "onlyInt": true,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "read_ms",
+        "type": "number",
+        "min": 0,
+        "max": null,
+        "onlyInt": true,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "recall_ms",
+        "type": "number",
+        "min": 0,
+        "max": null,
+        "onlyInt": true,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "outside_help",
+        "type": "text",
+        "max": 50,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "instructed_response",
+        "type": "text",
+        "max": 100,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "instructed_passed",
+        "type": "bool",
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "age",
+        "type": "number",
+        "min": 0,
+        "max": 120,
+        "onlyInt": true,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "gender",
+        "type": "text",
+        "max": 100,
+        "min": 0,
+        "pattern": "",
+        "autogeneratePattern": "",
+        "hidden": false,
+        "required": false,
+        "presentable": false,
+        "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "created",
+        "type": "autodate",
+        "onCreate": true,
+        "onUpdate": false,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      },
+      {
+        "name": "updated",
+        "type": "autodate",
+        "onCreate": true,
+        "onUpdate": true,
+        "hidden": false,
+        "presentable": false,
+        "system": false
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX `idx_whispers_active_slot` ON `whispers_responses` (`slot`) WHERE `status` = 'claimed' OR `status` = 'passed'",
+      "CREATE INDEX `idx_whispers_pid` ON `whispers_responses` (`pid`)"
+    ]
+  }
+]
