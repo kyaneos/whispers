@@ -1,5 +1,5 @@
-// Puts the test chains back to the start and deletes the test rows, so I can
-// run through the study again. Real chains and real rows are never touched.
+// Puts the test chains back to the start and deletes the test rows, so the
+// study can be run through again. Real chains and real rows are never touched.
 //   npm run reset-test
 import PocketBase from 'pocketbase';
 import { readFileSync } from 'node:fs';

@@ -15,7 +15,7 @@ export function makeTimeline(jsPsych) {
 	const consent = {
 		type: htmlButtonResponse,
 		data: { phase: 'consent' },
-		// PLACEHOLDER until I have the official consent text
+		// PLACEHOLDER until the official consent text is in
 		stimulus: `
 			<div class="prose mx-auto text-left">
 				<h2>Consent</h2>
@@ -227,7 +227,7 @@ export function makeTimeline(jsPsych) {
 	const debrief = {
 		type: htmlButtonResponse,
 		data: { phase: 'debrief' },
-		// PLACEHOLDER until I have the debrief text
+		// PLACEHOLDER until the debrief text is in
 		stimulus: `
 			<div class="prose mx-auto text-left">
 				<h2>Thank you</h2>

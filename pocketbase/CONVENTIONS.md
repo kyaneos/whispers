@@ -1,6 +1,6 @@
 # PocketBase conventions
 
-How I set up PocketBase for a study, so that every study and instance looks the same. I wrote it for whispers, building on what Telephone already does. I’m keeping it here until Eshin has seen it, and then it moves to the lab template.
+How PocketBase is set up for a study, so that every study and instance looks the same. Written for whispers, building on what Telephone already does. It lives here until it moves to the lab template.
 
 ## Naming
 
@@ -23,6 +23,6 @@ How I set up PocketBase for a study, so that every study and instance looks the 
 
 ## Schema
 
-11. The schema lives in the repo as `pocketbase/collections.json`, holding only the settings I chose.
+11. The schema lives in the repo as `pocketbase/collections.json`, holding only the settings that were chosen on purpose.
 12. Import it in the admin under Settings → Import collections, with **"Merge with the existing collections" on**. With merge off, PocketBase deletes every collection not in the file, which on a shared instance means other studies' data. The review screen should list only the new collections.
 13. Test every schema change against a local PocketBase on the same version as the shared instance before it touches the shared one. sciminds.cloud runs 0.28.2 (the version shows in the admin footer); `brew install pocketbase` gives the latest, which accepts things 0.28 rejects, so download the matching release from github.com/pocketbase/pocketbase/releases instead.

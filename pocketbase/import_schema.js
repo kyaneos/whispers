@@ -3,7 +3,7 @@
 // or deleted. Prints PocketBase's exact error if it refuses.
 //   npm run import-schema
 // Needs a superuser login in .env (PB_SUPERUSER_EMAIL, PB_SUPERUSER_PASSWORD).
-// I delete those two lines again once the import is done.
+// Remove those two lines again once the import is done.
 import PocketBase from 'pocketbase';
 import { readFileSync } from 'node:fs';
 

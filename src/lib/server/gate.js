@@ -1,7 +1,7 @@
 import { countWords } from '#lib/materials.js';
 
-// Starting cutoff from my Methods, "a recall under 10 words is nearly empty".
-// I set the final one from the pilot data
+// Starting cutoff from the Methods, "a recall under 10 words is nearly empty".
+// The final one is set from the pilot data
 export const MIN_WORDS = 10;
 
 // The word the hidden instructions ask an AI to use
@@ -16,7 +16,7 @@ export function clearFail(recall) {
 }
 
 // Spacing fixes only: trim, collapse runs of spaces, keep paragraph breaks.
-// I haven't decided on spelling correction yet
+// Spelling correction is still an open decision
 export function cleanSpacing(recall) {
 	return recall
 		.replace(/\r\n?/g, '\n')

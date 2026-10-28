@@ -2,7 +2,7 @@
 
 whispers is a web app for running transmission chain studies online. Each participant reads a short text, writes out as much of it as they can remember, and their recall becomes the text the next person in their chain reads. In this way, a text changes as it passes from one person to the next, much like the children’s game of telephone (or “Chinese whispers,” as it is known in the UK).
 
-It runs at [whispers.sciminds.app](https://whispers.sciminds.app). I built it for my replication of Mesoudi, Whiten & Dunbar (2006), Experiment 2 ([kyaneos/mesoudi2006](https://github.com/kyaneos/mesoudi2006)).
+It runs at [whispers.sciminds.app](https://whispers.sciminds.app) and was built for a replication of Mesoudi, Whiten & Dunbar (2006), Experiment 2 ([kyaneos/mesoudi2006](https://github.com/kyaneos/mesoudi2006)).
 
 ## What a participant does
 
@@ -73,7 +73,7 @@ The browser never holds a database login, and the one account the server uses ca
 
 ## Testing
 
-Adding `?test=1` to the link (after the key) sends you to the test chains, so my own runs never use up a real one. `npm run reset-test` puts the test chains back to the start. `npm run test:flow` walks a chain through the API from start to finish, covering the handoff, both kinds of exclusion, two people claiming at once and a reload partway through. Setting `BASE` points it at the live site.
+Adding `?test=1` to the link (after the key) routes a session to the test chains, so a trial run never uses up a real one. `npm run reset-test` puts the test chains back to the start. `npm run test:flow` walks a chain through the API from start to finish, covering the handoff, both kinds of exclusion, two people claiming at once and a reload partway through. Setting `BASE` points it at the live site.
 
 ## Commands
 
@@ -82,9 +82,9 @@ Everything runs from this folder. The scripts read `.env`, which holds the Pocke
 Links. The key is the `STUDY_KEY` line of `.env`.
 
     https://whispers.sciminds.app/?k=<key>            a participant
-    https://whispers.sciminds.app/?k=<key>&test=1     me, on the test chains
+    https://whispers.sciminds.app/?k=<key>&test=1     a trial run, on the test chains
 
-Running through it myself:
+Trial runs:
 
     npm run reset-test        put the test chains back to generation 1 and delete the test rows
     npm run test:flow         check the chain logic against a local dev server
