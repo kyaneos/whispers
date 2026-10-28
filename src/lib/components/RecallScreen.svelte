@@ -1,6 +1,6 @@
 <script>
 	import HiddenNote from './HiddenNote.svelte';
-	import { submitRecall } from '$lib/api';
+	import { submitRecall } from '#lib/api.js';
 
 	let { onComplete } = $props();
 
@@ -27,7 +27,9 @@
 	function oninput(e) {
 		log.input_events++;
 		const added = e.target.value.length - lastLength;
-		if (added > LARGE_INSERTION) log.large_insertions.push({ t_ms: ms(), chars: added, input_type: e.inputType });
+		if (added > LARGE_INSERTION && log.large_insertions.length < 200) {
+			log.large_insertions.push({ t_ms: ms(), chars: added, input_type: e.inputType });
+		}
 		lastLength = e.target.value.length;
 	}
 
@@ -68,7 +70,7 @@
 		autocomplete="off"
 	></textarea>
 	{#if failed}
-		<p class="mt-4 text-error">That didn't save. Please check your connection and try again.</p>
+		<p class="mt-4 text-error">That didn’t save. Please check your connection and try again.</p>
 	{/if}
 	<div class="mt-8 text-center">
 		<button

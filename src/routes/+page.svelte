@@ -1,7 +1,7 @@
 <script>
-	import { start } from '$lib/api';
-	import { makeTimeline } from '$lib/timeline';
-	import JSPsych from '$lib/components/JSPsych.svelte';
+	import { start } from '#lib/api.js';
+	import { makeTimeline } from '#lib/timeline.js';
+	import JSPsych from '#lib/components/JSPsych.svelte';
 
 	// what a returning browser sees, by its row's status
 	const MESSAGES = {
@@ -26,9 +26,13 @@
 			<p>{MESSAGES[session.status] || 'Something went wrong. Please contact the researcher.'}</p>
 		</section>
 	{/if}
-{:catch}
+{:catch err}
 	<section class="prose mx-auto mt-16 text-center">
-		<p>Something went wrong while loading the study. Please refresh the page.</p>
-		<button class="btn btn-primary" onclick={() => window.location.reload()}>Refresh</button>
+		{#if err?.status === 403}
+			<p>This link isn’t valid. Please use the exact link you were given.</p>
+		{:else}
+			<p>Something went wrong while loading the study. Please refresh the page.</p>
+			<button class="btn btn-primary" onclick={() => window.location.reload()}>Refresh</button>
+		{/if}
 	</section>
 {/await}

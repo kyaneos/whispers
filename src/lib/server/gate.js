@@ -1,4 +1,4 @@
-import { countWords } from '$lib/materials';
+import { countWords } from '#lib/materials.js';
 
 // Starting cutoff from my Methods, "a recall under 10 words is nearly empty".
 // I set the final one from the pilot data

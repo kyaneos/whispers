@@ -1,8 +1,8 @@
 <script>
 	import { onMount } from 'svelte';
 	import { initJsPsych } from 'jspsych';
-	import { saveTrial } from '$lib/api';
-	import { SESSION } from '$lib/stores';
+	import { saveTrial } from '#lib/api.js';
+	import { SESSION } from '#lib/stores.js';
 
 	// Trimmed from telephone-v1: one timeline, one save per trial, no resume
 	const { makeTimeline } = $props();
@@ -10,7 +10,7 @@
 	let containerEl; // where jsPsych renders
 	let canExit = true;
 
-	// warn before leaving mid-task, keyed on our phase tag (never trial_type)
+	// warn before leaving mid-task, keyed on the phase tag (never trial_type)
 	function on_trial_start(trial) {
 		canExit = !['read', 'recall'].includes(trial?.data?.phase);
 	}

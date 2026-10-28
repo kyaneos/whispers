@@ -1,16 +1,22 @@
 import { json, error } from '@sveltejs/kit';
-import { getPb, getResponse, CHAINS, RESPONSES } from '$lib/server/pb';
-import { clearFail, cleanSpacing } from '$lib/server/gate';
+import { getPb, getResponse, CHAINS, RESPONSES } from '#lib/server/pb.js';
+import { readJson, session, sized, LIMITS } from '#lib/server/input.js';
+import { clearFail, cleanSpacing } from '#lib/server/gate.js';
 
 const GENERATIONS = 4;
 
 // Recall submit. Pass: the cleaned recall becomes the chain's next text and the
 // chain moves to the next generation. Clear fail: the row is excluded and the
 // same generation reopens. The participant is never told which happened.
-export async function POST({ request, platform }) {
-	const { id, token, recall, keystroke_log } = await request.json();
-	const pb = await getPb(platform);
-	const row = await getResponse(pb, id, token).catch(() => error(403));
+export async function POST({ request }) {
+	const body = await readJson(request);
+	const { id, token } = session(body);
+	if (typeof body.recall !== 'string') error(400, 'bad request');
+	if (body.recall.length > LIMITS.recall) error(413, 'recall too long');
+	const keystroke_log = sized(body.keystroke_log, LIMITS.log, 'keystroke log');
+
+	const pb = await getPb();
+	const row = await getResponse(pb, id, token);
 	if (row.status !== 'claimed') error(409, `cannot submit from status ${row.status}`);
 
 	const chain = await pb.collection(CHAINS).getOne(row.chain_ref);
@@ -18,7 +24,7 @@ export async function POST({ request, platform }) {
 		error(409, 'chain moved on'); // should never happen while the slot is claimed
 	}
 
-	const recall_raw = String(recall ?? '');
+	const recall_raw = body.recall;
 	const fail = clearFail(recall_raw);
 
 	if (fail) {

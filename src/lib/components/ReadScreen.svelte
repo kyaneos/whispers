@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import HiddenNote from './HiddenNote.svelte';
-	import { readingFloorMs } from '$lib/materials';
+	import { readingFloorMs } from '#lib/materials.js';
 
 	let { text, onComplete } = $props();
 

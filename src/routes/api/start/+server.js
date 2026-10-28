@@ -1,14 +1,16 @@
 import { json } from '@sveltejs/kit';
-import { getPb, getResponse, CHAINS, RESPONSES } from '$lib/server/pb';
+import { getPb, getResponse, checkStudyKey, CHAINS, RESPONSES } from '#lib/server/pb.js';
+import { readJson, text, ID, TOKEN } from '#lib/server/input.js';
 
 // Creates the participant's row, or finds it again after a reload.
 // A reload after claiming a slot counts as abandoning it, which frees the slot,
 // since the text has already been seen and the timeline can't resume mid-task.
-export async function POST({ request, platform }) {
-	const { id, token, pid, test } = await request.json();
-	const pb = await getPb(platform);
+export async function POST({ request }) {
+	const { id, token, pid, test, key } = await readJson(request);
+	checkStudyKey(key);
+	const pb = await getPb();
 
-	if (id && token) {
+	if (typeof id === 'string' && ID.test(id) && typeof token === 'string' && TOKEN.test(token)) {
 		try {
 			let row = await getResponse(pb, id, token);
 			// not yet holding a slot (or none was open last time): start over cleanly
@@ -33,11 +35,11 @@ export async function POST({ request, platform }) {
 	}
 
 	const row = await pb.collection(RESPONSES).create({
-		pid: String(pid || '').slice(0, 100),
-		test: !!test,
+		pid: text(pid, 100),
+		test: test === true,
 		status: 'started',
 		token: crypto.randomUUID(),
-		user_agent: request.headers.get('user-agent')?.slice(0, 300) || ''
+		user_agent: text(request.headers.get('user-agent'), 300)
 	});
 	return json({ id: row.id, token: row.token, status: row.status, test: row.test });
 }

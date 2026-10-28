@@ -9,7 +9,11 @@ async function post(path, body) {
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(body)
 	});
-	if (!res.ok) throw new Error(`${path} failed: ${res.status}`);
+	if (!res.ok) {
+		const err = new Error(`${path} failed: ${res.status}`);
+		err.status = res.status;
+		throw err;
+	}
 	return res.json();
 }
 
@@ -17,8 +21,9 @@ async function post(path, body) {
 let queue = Promise.resolve();
 const enqueue = (job) => (queue = queue.then(job, job));
 
-// Find or create this browser's row. ?pid= sets the participant id, ?test=1
-// routes to the test chains.
+// Find or create this browser's row. ?k= is the study key (the server refuses
+// to start without it), ?pid= sets the participant id, ?test=1 routes to the
+// test chains.
 export async function start() {
 	const params = new URLSearchParams(window.location.search);
 	let saved = null;
@@ -30,6 +35,7 @@ export async function start() {
 	const session = await post('/api/start', {
 		id: saved?.id,
 		token: saved?.token,
+		key: params.get('k') || '',
 		pid: params.get('pid') || '',
 		test: params.get('test') === '1'
 	});

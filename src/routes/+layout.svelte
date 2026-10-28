@@ -1,7 +1,7 @@
 <script>
 	import '../app.css';
 	import '@jspsych/plugin-survey/css/survey.css';
-	import UnsupportedDeviceScreen from '$lib/components/UnsupportedDeviceScreen.svelte';
+	import UnsupportedDeviceScreen from '#lib/components/UnsupportedDeviceScreen.svelte';
 
 	let { children } = $props();
 

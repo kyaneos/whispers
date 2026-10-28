@@ -1,14 +1,15 @@
 import { json, error } from '@sveltejs/kit';
-import { getPb, getResponse, CHAINS, RESPONSES } from '$lib/server/pb';
-import { g1Text } from '$lib/materials';
+import { getPb, getResponse, CHAINS, RESPONSES } from '#lib/server/pb.js';
+import { readJson, session } from '#lib/server/input.js';
+import { g1Text } from '#lib/materials.js';
 
 // Claims the lowest-numbered open chain. The database enforces one active row
 // per (chain, generation) slot with a unique index, so if two people claim at
 // once, one update fails and that person moves on to the next chain.
-export async function POST({ request, platform }) {
-	const { id, token } = await request.json();
-	const pb = await getPb(platform);
-	const row = await getResponse(pb, id, token).catch(() => error(403));
+export async function POST({ request }) {
+	const { id, token } = session(await readJson(request));
+	const pb = await getPb();
+	const row = await getResponse(pb, id, token);
 	if (row.status !== 'started') error(409, `cannot claim from status ${row.status}`);
 
 	const chains = await pb.collection(CHAINS).getFullList({

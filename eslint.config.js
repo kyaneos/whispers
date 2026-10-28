@@ -1,7 +1,6 @@
 import js from '@eslint/js';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
-import svelteConfig from './svelte.config.js';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -15,7 +14,6 @@ export default [
 	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.js'],
-		languageOptions: { parserOptions: { svelteConfig } },
 		rules: {
 			'svelte/require-each-key': 'off',
 			'svelte/no-useless-mustaches': 'off'
