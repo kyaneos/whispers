@@ -5,7 +5,7 @@
 
 	let { text, onComplete } = $props();
 
-	// split on blank lines, so G1 shows its four paragraphs separately
+	// split on blank lines, so the original text shows as four separate paragraphs
 	const paragraphs = $derived(text.split(/\n\s*\n/));
 	const floorMs = $derived(readingFloorMs(text));
 

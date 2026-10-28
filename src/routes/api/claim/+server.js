@@ -1,7 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import { getPb, getResponse, CHAINS, RESPONSES } from '#lib/server/pb.js';
 import { readJson, session } from '#lib/server/input.js';
-import { g1Text } from '#lib/materials.js';
+import { originalText } from '#lib/materials.js';
 
 // Claims the lowest-numbered open chain. The database enforces one active row
 // per (chain, generation) slot with a unique index, so if two people claim at
@@ -18,8 +18,8 @@ export async function POST({ request }) {
 	});
 
 	for (const c of chains) {
-		// G1 reads the four paragraphs in the chain's order; G2+ read the last recall
-		const input_text = c.generation === 1 ? g1Text(c.order) : c.current_text;
+		// generation 1 reads the original text; generations 2 to 4 read the recall before them
+		const input_text = c.generation === 1 ? originalText(c.order) : c.current_text;
 		try {
 			await pb.collection(RESPONSES).update(row.id, {
 				status: 'claimed',

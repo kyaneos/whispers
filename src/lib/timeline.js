@@ -117,7 +117,7 @@ export function makeTimeline(jsPsych) {
 
 	const instructionsLoop = {
 		timeline: [instructions, instructionsCheck],
-		loop_function: (data) => !data.filter({ phase: 'instructions_check' }).values()[0].passed
+		loop_function: (data) => !data.filter({ phase: 'instructions_check' }).last(1).values()[0].passed
 	};
 
 	// Claim a slot only now, so people who screen out never hold one

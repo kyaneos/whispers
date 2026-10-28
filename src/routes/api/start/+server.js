@@ -13,6 +13,8 @@ export async function POST({ request }) {
 	if (typeof id === 'string' && ID.test(id) && typeof token === 'string' && TOKEN.test(token)) {
 		try {
 			let row = await getResponse(pb, id, token);
+			// a saved row from the other kind of link (test vs real) never carries over
+			if (row.test !== (test === true)) throw new Error('different link');
 			// not yet holding a slot (or none was open last time): start over cleanly
 			if (row.status === 'started' || row.status === 'no_slot') {
 				row = await pb

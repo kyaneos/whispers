@@ -1,8 +1,8 @@
 // End-to-end check of the chain engine through the app's own API routes.
 //   npm run test:flow                              (local dev server from npm run dev)
-//   BASE=https://whispers.pages.dev npm run test:flow
-// Needs test chains 1 and 2 fresh at G1 (npm run seed -- --test 2 on an empty
-// table). It uses them up, so reset them afterwards. Against a live URL it only
+//   BASE=https://whispers.sciminds.app npm run test:flow
+// Needs test chains 1 and 2 fresh at generation 1 (npm run reset-test). It uses
+// them up, so reset them afterwards. Against a live URL it only
 // touches test chains; the real-chain check runs on localhost only.
 import { readFileSync } from 'node:fs';
 const BASE = process.env.BASE || 'http://localhost:5173';
@@ -39,40 +39,40 @@ const person = async (pid, test = true) => {
 };
 const log = { keystrokes: 300, input_events: 300, blocked_pastes: 0, large_insertions: [] };
 
-// G1 claims test chain 1 and gets the four paragraphs in order 1
-const g1 = await person('flow-g1');
-const s1 = await post('/api/claim', g1.auth);
+// generation 1 claims test chain 1 and gets the original text in order 1
+const gen1 = await person('flow-gen1');
+const s1 = await post('/api/claim', gen1.auth);
 if (!s1.chain || s1.chain !== 1 || s1.generation !== 1) {
 	console.log('the test chains are not fresh: run `npm run reset-test` first');
 	process.exit(1);
 }
-check('G1 gets test chain 1, generation 1', true);
-check('G1 text starts with the gossip paragraph', s1.input_text.startsWith('Nancy is having an affair'));
+check('generation 1 gets test chain 1', true);
+check('generation 1 reads the original text, starting with the gossip paragraph', s1.input_text.startsWith('Nancy is having an affair'));
 
-// a passing recall is cleaned (spacing only) and becomes G2's text
+// a passing recall is cleaned (spacing only) and becomes generation 2's text
 const recall = 'Nancy  had an affair with   her professor and got pregnant.\n\n\nHe would not see her so she told his wife, who left him.  ';
-await post('/api/submit', { ...g1.auth, recall, keystroke_log: log });
-const g2 = await person('flow-g2');
-const s2 = await post('/api/claim', g2.auth);
-check('G2 gets the same chain at generation 2', s2.chain === 1 && s2.generation === 2);
+await post('/api/submit', { ...gen1.auth, recall, keystroke_log: log });
+const gen2 = await person('flow-gen2');
+const s2 = await post('/api/claim', gen2.auth);
+check('generation 2 gets the same chain', s2.chain === 1 && s2.generation === 2);
 check(
-	'G2 reads G1 recall with spacing fixed',
+	'generation 2 reads generation 1’s recall with spacing fixed',
 	s2.input_text ===
 		'Nancy had an affair with her professor and got pregnant.\n\nHe would not see her so she told his wife, who left him.'
 );
 
 // clear fails exclude the row and reopen the same generation
 await post('/api/submit', {
-	...g2.auth,
+	...gen2.auth,
 	recall: 'In erstwhile times Nancy had an affair with her professor and so on and so forth.',
 	keystroke_log: log
 });
-const g2b = await person('flow-g2b');
-const s2b = await post('/api/claim', g2b.auth);
+const gen2b = await person('flow-gen2b');
+const s2b = await post('/api/claim', gen2b.auth);
 check('canary word reopens generation 2 with the same text', s2b.generation === 2 && s2b.input_text === s2.input_text);
-await post('/api/submit', { ...g2b.auth, recall: 'Nancy professor', keystroke_log: log });
-const g2c = await person('flow-g2c');
-const s2c = await post('/api/claim', g2c.auth);
+await post('/api/submit', { ...gen2b.auth, recall: 'Nancy professor', keystroke_log: log });
+const gen2c = await person('flow-gen2c');
+const s2c = await post('/api/claim', gen2c.auth);
 check('near-empty recall reopens generation 2', s2c.chain === 1 && s2c.generation === 2);
 
 // one open slot (test chain 2) and two people claiming at once: exactly one wins
@@ -87,7 +87,7 @@ check('no open slot returns no chain', (await post('/api/claim', z.auth)).chain 
 
 // a reload after claiming abandons the slot and frees it
 const holder = cx.chain ? x : y;
-const again = await post('/api/start', { ...holder.auth, key: KEY });
+const again = await post('/api/start', { ...holder.auth, test: true, key: KEY });
 check('reload after claiming is marked abandoned', again.status === 'abandoned');
 const w = await person('flow-w');
 check('the freed slot can be claimed', (await post('/api/claim', w.auth)).chain !== null);
@@ -100,15 +100,22 @@ try {
 	check('wrong study key is refused', e.message.includes(' 403 '));
 }
 try {
-	await post('/api/save', { ...g1.auth, trial: { phase: 'x', pad: 'a'.repeat(300000) } });
+	await post('/api/save', { ...gen1.auth, trial: { phase: 'x', pad: 'a'.repeat(300000) } });
 	check('oversized request is refused', false);
 } catch (e) {
 	check('oversized request is refused', e.message.includes(' 413 '));
 }
 
+// a row saved from a real link never carries over to a test link, or the reverse
+{
+	const real = await person('flow-switch', false);
+	const again = await post('/api/start', { ...real.auth, test: true, key: KEY });
+	check('switching to a test link starts a new test row', again.id !== real.id && again.test === true);
+}
+
 // someone else's row can't be written
 try {
-	await post('/api/save', { id: g1.id, token: 'wrong', trial: {} });
+	await post('/api/save', { id: gen1.id, token: 'wrong', trial: {} });
 	check('wrong token is refused', false);
 } catch (e) {
 	check('wrong token is refused', e.message.includes(' 403 '));
@@ -118,7 +125,7 @@ try {
 if (LOCAL) {
 	const real = await person('flow-real', false);
 	const cr = await post('/api/claim', real.auth);
-	check('a real participant still gets real chain 1 at G1', cr.chain === 1 && cr.generation === 1);
+	check('a real participant still gets real chain 1 at generation 1', cr.chain === 1 && cr.generation === 1);
 }
 
 console.log(failures ? `\n${failures} failed` : '\nall passed');

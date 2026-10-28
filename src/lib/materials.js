@@ -20,8 +20,9 @@ export const ORDERS = {
 // chain k uses row ((k - 1) mod 4), e.g. chain 5 gets order 1 again
 export const orderForChain = (chain) => ((chain - 1) % 4) + 1;
 
-// G1 text: the four paragraphs in the chain's order, one blank line apart
-export const g1Text = (order) => ORDERS[order].map((code) => PARAGRAPHS[code]).join('\n\n');
+// The original text: the four paragraphs in the chain's order, with a blank
+// line between them. Generation 1 reads this.
+export const originalText = (order) => ORDERS[order].map((code) => PARAGRAPHS[code]).join('\n\n');
 
 export const countWords = (text) => text.trim().split(/\s+/).filter(Boolean).length;
 

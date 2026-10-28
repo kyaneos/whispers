@@ -6,7 +6,7 @@ It runs at [whispers.sciminds.app](https://whispers.sciminds.app) and was built 
 
 ## What a participant does
 
-A participant consents, answers a screening question about English fluency, and passes a short check on the rules (read the text once, no going back). They then read their text, which stays on screen for a minimum reading time, write out what they remember, and answer a few final questions about outside help, age and gender before the debrief. The first participant in a chain reads the four original paragraphs, in one of four orders from a balanced Latin square. Everyone after them reads the recall of the person before them.
+A participant consents, answers a screening question about English fluency, and passes a short check on the rules (read the text once, no going back). They then read their text, which stays on screen for a minimum reading time, write out what they remember, and answer a few final questions about outside help, age and gender before the debrief. Generation 1, the first participant in a chain, reads the original text: the four paragraphs, in one of four orders from a balanced Latin square. Generations 2 to 4 each read the recall of the generation before them.
 
 Because the study runs online and unsupervised, the app also does the work an experimenter in the room would have done. The text can’t be selected or copied, pasting into the recall box is blocked, and every recall comes with a log of how it was typed and whether the participant left the page. Both screens also carry instructions that only an AI would see, which ask it to use a particular uncommon word, so that AI-written recalls can be flagged.
 
