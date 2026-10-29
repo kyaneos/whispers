@@ -67,7 +67,7 @@ The app is built with SvelteKit and jsPsych, stores its data in PocketBase, and 
 4. Create chains with `npm run seed -- --real 1 --test 2`
 5. Run `npm run build` and `npx wrangler deploy`, then add the two secrets with `npx wrangler secret put PB_APP_PASSWORD` and `npx wrangler secret put STUDY_KEY`, and check them with `npx wrangler secret list`. Because secrets belong to one Cloudflare account, the Worker has to exist on the right account first
 
-## What keeps it safe
+## Safety
 
 The browser never holds a database login, and the one account the server uses can only reach the `whispers_` collections. Nobody can start a session without the key in the link, and after that each participant’s row is tied to a random token that only their browser has. Every request is checked for size and shape before it touches the database. The site sends a Content Security Policy, so the browser only runs scripts from this site, and it refuses to be shown inside another site. Search engines are told to stay out.
 
@@ -97,7 +97,7 @@ Working on the app:
     npm run build
     npx wrangler deploy       put the current build live (build first)
 
-Chains and the database:
+Chains and database:
 
     npm run seed -- --real 12 --test 2       create chains; existing ones are skipped, so a bigger number only adds
     npm run import-schema                    apply pocketbase/collections.json (needs the superuser lines in .env, then remove them)
