@@ -14,23 +14,24 @@ export async function POST({ request }) {
 		try {
 			let row = await getResponse(pb, id, token);
 			// a saved row from the other kind of link (test vs real) never carries over
-			if (row.test !== (test === true)) throw new Error('different link');
-			// not yet holding a slot (or none was open last time): start over cleanly
-			if (row.status === 'started' || row.status === 'no_slot') {
-				row = await pb
-					.collection(RESPONSES)
-					.update(row.id, { status: 'started', trials: [], instructions_attempts: 0 });
-			}
-			if (row.status === 'claimed') {
-				row = await pb.collection(RESPONSES).update(row.id, { status: 'abandoned' });
-				const chain = await pb.collection(CHAINS).getOne(row.chain_ref);
-				if (chain.claimed_by === row.id) {
-					await pb
-						.collection(CHAINS)
-						.update(chain.id, { status: 'open', claimed_by: '', claimed_at: '' });
+			if (row.test === (test === true)) {
+				// not yet holding a slot (or none was open last time): start over cleanly
+				if (row.status === 'started' || row.status === 'no_slot') {
+					row = await pb
+						.collection(RESPONSES)
+						.update(row.id, { status: 'started', trials: [], instructions_attempts: 0 });
 				}
+				if (row.status === 'claimed') {
+					row = await pb.collection(RESPONSES).update(row.id, { status: 'abandoned' });
+					const chain = await pb.collection(CHAINS).getOne(row.chain_ref);
+					if (chain.claimed_by === row.id) {
+						await pb
+							.collection(CHAINS)
+							.update(chain.id, { status: 'open', claimed_by: '', claimed_at: '' });
+					}
+				}
+				return json({ id: row.id, token, status: row.status, test: row.test });
 			}
-			return json({ id: row.id, token, status: row.status, test: row.test });
 		} catch {
 			// unknown or stale id: fall through and start fresh
 		}

@@ -6,10 +6,8 @@
 
 	let { children } = $props();
 
-	// TEL-118 (v1): desktop only. ssr=false, so window exists during init
-	const uiCompatible =
-		typeof window !== 'undefined' &&
-		window.matchMedia('(any-pointer: fine) and (any-hover: hover)').matches;
+	// TEL-118 (v1): desktop only, i.e. a mouse or trackpad that can hover
+	const uiCompatible = window.matchMedia('(any-pointer: fine) and (any-hover: hover)').matches;
 </script>
 
 {#if !uiCompatible}

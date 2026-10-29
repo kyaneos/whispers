@@ -2,12 +2,12 @@
 	import HiddenNote from './HiddenNote.svelte';
 	import { submitRecall } from '#lib/api.js';
 
-	let { onComplete } = $props();
-
 	// Starting cutoff, to be set from the pilot data: one input event adding more
 	// than this many characters is logged as a large insertion (autocomplete,
 	// dictation, a paste that got through)
 	const LARGE_INSERTION = 20;
+
+	let { onComplete } = $props();
 
 	let recall = $state('');
 	let submitting = $state(false);

@@ -22,19 +22,17 @@
 		saveTrial(data).catch((err) => console.error('save failed', err));
 	}
 
-	$effect(() => {
-		const warn = (e) => {
-			if (!canExit) e.preventDefault();
-		};
-		window.addEventListener('beforeunload', warn);
-		return () => window.removeEventListener('beforeunload', warn);
-	});
+	// the browser's "Leave site?" warning, only while canExit is false
+	function warn(e) {
+		if (!canExit) e.preventDefault();
+	}
 
 	onMount(() => {
+		window.addEventListener('beforeunload', warn);
+
 		const jsPsych = initJsPsych({
 			display_element: containerEl,
-			css: false, // tailwind styles it
-			default_iti: 0,
+			default_iti: 0, // no pause between screens
 			on_trial_start,
 			on_trial_finish: () => (canExit = true),
 			on_data_update,
@@ -43,6 +41,8 @@
 		jsPsych.data.addProperties({ participant: $SESSION.id, test: $SESSION.test });
 		if (import.meta.env.DEV) window.jspsych = jsPsych;
 		jsPsych.run(makeTimeline(jsPsych));
+
+		return () => window.removeEventListener('beforeunload', warn);
 	});
 </script>
 

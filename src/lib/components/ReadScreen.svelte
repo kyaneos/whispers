@@ -6,8 +6,8 @@
 	let { text, onComplete } = $props();
 
 	// split on blank lines, so the original text shows as four separate paragraphs
-	const paragraphs = $derived(text.split(/\n\s*\n/));
-	const floorMs = $derived(readingFloorMs(text));
+	const paragraphs = text.split(/\n\s*\n/);
+	const floorMs = readingFloorMs(text);
 
 	// the button unlocks after the reading floor (400 words per minute)
 	let ready = $state(false);
@@ -16,15 +16,14 @@
 		return () => clearTimeout(timer);
 	});
 
+	// select-none already stops highlighting; these stop copy and the right-click menu
 	const block = (e) => e.preventDefault();
 </script>
 
 <div
 	class="relative select-none"
 	oncopy={block}
-	oncut={block}
 	oncontextmenu={block}
-	ondragstart={block}
 	role="presentation"
 >
 	<p class="mb-4 text-center font-medium text-base-content/70">
