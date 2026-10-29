@@ -46,9 +46,9 @@
 	});
 </script>
 
-<div class="mx-auto w-full pb-20">
+<div class="mx-auto w-full">
 	<div
 		bind:this={containerEl}
-		class="jspsych-display-element mx-auto min-h-[80vh] w-full outline-none focus:outline-none"
+		class="jspsych-display-element mx-auto w-full outline-none focus:outline-none"
 	></div>
 </div>

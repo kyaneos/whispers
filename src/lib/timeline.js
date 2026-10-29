@@ -30,11 +30,11 @@ const CONSENT_HTML = `
 
 // Debrief text approved 2026-10-28 (TEL-228)
 const DEBRIEF_HTML = `
-	<div class="page prose max-w-none text-center">
-		<h2>Debrief</h2>
-		<p class="text-left">Thank you so much for taking part! This study looks at how narratives change as they get passed from person to person, like in the game of telephone. The text you read was either one of our original passages or what the person before you remembered of it, and what you wrote will be passed on as the text for the next person in your chain. We’re curious whether some kinds of information hold up better than others as a story gets retold. Please don’t share the details of this study with anyone who might take part, since knowing what we’re looking for could change how they read and remember.</p>
-		<p>You can close this tab now.</p>
-	</div>`;
+	<div class="page prose max-w-none">
+		<h2 class="text-center">Debrief</h2>
+		<p>Thank you so much for taking part! This study looks at how narratives change as they get passed from person to person, like in the game of telephone. The text you read was either one of our original passages or what the person before you remembered of it, and what you wrote will be passed on as the text for the next person in your chain. We’re curious whether some kinds of information hold up better than others as a story gets retold. Please don’t share the details of this study with anyone who might take part, since knowing what we’re looking for could change how they read and remember.</p>
+	</div>
+	<p class="mt-10 text-center italic text-base-content/70">You can close this tab now.</p>`;
 
 // The two screens where the study ends early
 const SCREENED_OUT_HTML =
