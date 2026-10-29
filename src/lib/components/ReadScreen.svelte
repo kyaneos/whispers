@@ -20,27 +20,32 @@
 </script>
 
 <div
-	class="relative mx-auto max-w-2xl select-none"
+	class="relative select-none"
 	oncopy={block}
 	oncut={block}
 	oncontextmenu={block}
 	ondragstart={block}
 	role="presentation"
 >
-	<p class="font-semibold">
+	<p class="mb-4 text-center font-medium text-base-content/70">
 		Please read the following text through once. When you have finished turn the page.
 	</p>
-	{#each paragraphs as paragraph}
-		<p class="text-lg leading-relaxed">{paragraph}</p>
-	{/each}
+	<article class="page space-y-6 !px-12 !py-10 text-[1.0625rem] leading-8">
+		{#each paragraphs as paragraph}
+			<p>{paragraph}</p>
+		{/each}
+	</article>
 	<HiddenNote />
-	<div class="mt-12 text-center">
+	<div class="mt-6 flex flex-col items-center gap-2">
 		<button
-			class="btn btn-lg btn-primary"
+			class="btn min-w-40 btn-lg btn-primary"
 			disabled={!ready}
 			onclick={() => onComplete({ floor_ms: floorMs })}
 		>
 			Turn the page
 		</button>
+		<p class="page-note h-5">
+			{#if !ready}You’ll be able to turn the page in a moment.{/if}
+		</p>
 	</div>
 </div>

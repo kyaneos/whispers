@@ -2,6 +2,7 @@
 	import '../app.css';
 	import '@jspsych/plugin-survey/css/survey.css';
 	import UnsupportedDeviceScreen from '#lib/components/UnsupportedDeviceScreen.svelte';
+	import StudyBar from '#lib/components/StudyBar.svelte';
 
 	let { children } = $props();
 
@@ -14,7 +15,8 @@
 {#if !uiCompatible}
 	<UnsupportedDeviceScreen />
 {:else}
-	<main class="mx-auto w-full max-w-screen-lg px-4 py-6">
+	<main class="mx-auto w-full max-w-4xl px-6 pt-6 pb-20">
 		{@render children()}
 	</main>
+	<StudyBar />
 {/if}

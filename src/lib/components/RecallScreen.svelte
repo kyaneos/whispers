@@ -4,9 +4,9 @@
 
 	let { onComplete } = $props();
 
-	// Starting cutoff, set from the pilot data: one input event adding more than
-	// this many characters is logged as a large insertion (autocomplete, dictation,
-	// a paste that got through)
+	// Starting cutoff, to be set from the pilot data: one input event adding more
+	// than this many characters is logged as a large insertion (autocomplete,
+	// dictation, a paste that got through)
 	const LARGE_INSERTION = 20;
 
 	let recall = $state('');
@@ -53,28 +53,33 @@
 	}
 </script>
 
-<div class="relative mx-auto max-w-2xl">
-	<p class="font-semibold">
+<div class="relative">
+	<p class="mb-4 text-center font-medium text-base-content/70">
 		Now, without turning back, please write out as best you can the text you just read. Be as
-		accurate as possible, but don't worry if you can't remember it all. When you have finished
+		accurate as possible, but don’t worry if you can’t remember it all. When you have finished
 		turn the page.
 	</p>
 	<HiddenNote />
-	<textarea
-		class="textarea h-80 w-full text-lg"
-		bind:value={recall}
-		{onkeydown}
-		{oninput}
-		onpaste={blockPaste}
-		ondrop={blockPaste}
-		autocomplete="off"
-	></textarea>
+	<div class="page p-0">
+		<textarea
+			class="block h-96 w-full resize-y rounded-box border-0 bg-transparent px-10 py-9 text-lg leading-8 focus:ring-2 focus:ring-primary/40"
+			bind:value={recall}
+			{onkeydown}
+			{oninput}
+			onpaste={blockPaste}
+			ondrop={blockPaste}
+			autocomplete="off"
+			aria-label="Your recall of the text"
+		></textarea>
+	</div>
 	{#if failed}
-		<p class="mt-4 text-error">That didn’t save. Please check your connection and try again.</p>
+		<p class="mt-4 text-center text-error">
+			That didn’t save. Please check your connection and try again.
+		</p>
 	{/if}
-	<div class="mt-8 text-center">
+	<div class="mt-6 flex justify-center">
 		<button
-			class="btn btn-lg btn-primary"
+			class="btn min-w-40 btn-lg btn-primary"
 			disabled={submitting || !recall.trim()}
 			onclick={submit}
 		>

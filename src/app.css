@@ -5,22 +5,122 @@
 	themes: corporate --default;
 }
 
-/* jsPsych screens use the same look as the rest of the app (from telephone-v1) */
+@layer base {
+	body {
+		@apply min-h-screen text-base-content antialiased;
+	}
+}
+
+/* the same light grey behind every page, all the way down the window. daisyUI
+   paints the page with --root-bg, so set that rather than fighting it */
+:root,
+[data-theme] {
+	--root-bg: color-mix(in oklab, var(--color-base-200) 40%, var(--color-base-100));
+}
+body {
+	background-color: var(--root-bg);
+}
+
+/* jsPsych screens share Telephone's look: one centered column, prose type */
 @layer components {
 	.jspsych-display-element {
-		@apply bg-base-100 font-sans text-base-content;
+		@apply font-sans text-base-content;
 	}
 	.jspsych-content {
-		@apply mx-auto max-w-3xl px-8 pt-8 pb-16;
+		@apply mx-auto w-full max-w-3xl;
 	}
 	.jspsych-content p {
-		@apply mb-6 leading-relaxed;
+		@apply leading-relaxed;
 	}
 	.jspsych-btn {
-		@apply btn mx-2 btn-lg btn-primary;
+		@apply btn min-w-40 btn-lg btn-primary;
 	}
-	.jspsych-content .jspsych-btn-group,
 	.jspsych-content #jspsych-html-button-response-btngroup {
-		@apply mt-12 flex flex-wrap justify-center gap-4;
+		@apply mt-10 flex flex-wrap justify-center gap-4;
 	}
+
+	/* a page of the booklet: consent, instructions, read, recall, debrief */
+	.page {
+		@apply rounded-box border border-base-300 bg-base-100 px-10 py-9 shadow-sm;
+	}
+	.page h2 {
+		@apply mt-0 mb-5 text-2xl font-semibold;
+	}
+	.page-note {
+		@apply text-sm text-base-content/60;
+	}
+}
+
+/* SurveyJS (screening, rules check, final questions) in the same theme.
+   The plugin sets these variables inline, so these need !important to win */
+.sd-root-modern {
+	--sjs-primary-backcolor: var(--color-primary) !important;
+	--sjs-primary-backcolor-dark: color-mix(in oklab, var(--color-primary), black 15%) !important;
+	--sjs-primary-backcolor-light: color-mix(in oklab, var(--color-primary), transparent 88%) !important;
+	--sjs-primary-forecolor: var(--color-primary-content) !important;
+	--sjs-general-backcolor: var(--color-base-100) !important;
+	--sjs-general-backcolor-dim: transparent !important;
+	--sjs-general-forecolor: var(--color-base-content) !important;
+	--sjs-font-family: inherit !important;
+	--sjs-corner-radius: 0.5rem !important;
+	background: transparent !important;
+}
+/* The plugin renames SurveyJS's classes: the page is .jspsych-page, the button bar
+   .jspsych-footer, the Continue button .jspsych-nav-complete. One card per screen,
+   questions inside it without their own boxes, a centered Continue */
+.jspsych-body {
+	max-width: 42rem !important;
+	margin-inline: auto !important;
+	padding-top: 0 !important;
+}
+.jspsych-page {
+	@apply rounded-box border border-base-300 bg-base-100 shadow-sm;
+	padding: 2.25rem 2.75rem 1rem !important;
+}
+.jspsych-page .sd-element--with-frame {
+	box-shadow: none !important;
+	background: transparent !important;
+	padding: 0 0 1.75rem !important;
+	margin: 0 !important;
+	overflow: visible !important; /* SurveyJS scrolls a question sideways once its padding is gone */
+	min-width: 0 !important;
+}
+.jspsych-page .sd-question__content,
+.jspsych-page .sd-selectbase,
+.jspsych-page .sd-item__control-label {
+	min-width: 0 !important;
+	white-space: normal !important;
+	overflow-wrap: anywhere;
+}
+.jspsych-page .sd-row {
+	margin-top: 0 !important;
+}
+.jspsych-footer {
+	display: flex !important;
+	justify-content: center !important;
+	padding-top: 2rem !important;
+}
+.jspsych-footer .sv-action {
+	flex: 0 0 auto !important;
+}
+/* Continue: grey until every required question is answered (gateContinue in
+   timeline.js toggles disabled), blue after */
+.jspsych-nav-complete {
+	min-width: 10rem;
+	padding: 0.85rem 2.5rem !important;
+	border-radius: var(--radius-field) !important;
+	background-color: var(--color-primary) !important;
+	color: var(--color-primary-content) !important;
+	font-weight: 600 !important;
+	box-shadow: none !important;
+	cursor: pointer;
+}
+.jspsych-nav-complete:hover {
+	background-color: color-mix(in oklab, var(--color-primary), black 12%) !important;
+}
+.jspsych-nav-complete:disabled {
+	background-color: var(--color-base-300) !important;
+	color: color-mix(in oklab, var(--color-base-content), transparent 55%) !important;
+	opacity: 1 !important;
+	cursor: not-allowed;
 }
