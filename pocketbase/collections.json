@@ -175,6 +175,7 @@
         "values": [
           "open",
           "claimed",
+          "held",
           "done"
         ],
         "required": true,
@@ -295,6 +296,8 @@
           "screened_out",
           "no_slot",
           "claimed",
+          "submitted",
+          "held",
           "abandoned",
           "passed",
           "excluded"
@@ -438,6 +441,15 @@
         "required": false,
         "presentable": false,
         "primaryKey": false,
+        "system": false
+      },
+      {
+        "name": "flags",
+        "type": "json",
+        "maxSize": 2000000,
+        "required": false,
+        "hidden": false,
+        "presentable": false,
         "system": false
       },
       {
@@ -607,7 +619,7 @@
       }
     ],
     "indexes": [
-      "CREATE UNIQUE INDEX `idx_whispers_active_slot` ON `whispers_responses` (`slot`) WHERE `status` = 'claimed' OR `status` = 'passed'",
+      "CREATE UNIQUE INDEX `idx_whispers_active_slot` ON `whispers_responses` (`slot`) WHERE `status` = 'claimed' OR `status` = 'submitted' OR `status` = 'held' OR `status` = 'passed'",
       "CREATE INDEX `idx_whispers_pid` ON `whispers_responses` (`pid`)"
     ]
   }

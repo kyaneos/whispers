@@ -1,13 +1,12 @@
 import { json, error } from '@sveltejs/kit';
-import { getPb, getResponse, CHAINS, RESPONSES } from '#lib/server/pb.js';
+import { getPb, getResponse } from '#lib/server/pb.js';
+import { CHAINS, RESPONSES, reopen } from '#lib/server/chain.js';
 import { readJson, session, sized, LIMITS } from '#lib/server/input.js';
-import { clearFail, cleanSpacing } from '#lib/server/gate.js';
+import { clearFail, offTopic, cleanSpacing } from '#lib/server/gate.js';
 
-const GENERATIONS = 4;
-
-// Recall submit. Pass: the cleaned recall becomes the chain's next text and the
-// chain moves to the next generation. Clear fail: the row is excluded and the
-// same generation reopens. The participant is never told which happened.
+// Recall submit. A clear fail excludes the row and the same generation reopens.
+// Anything else is saved as submitted, and the chain stays claimed until the
+// final questions come in (/api/finish). The participant is never told which happened.
 export async function POST({ request }) {
 	const body = await readJson(request);
 	const { id, token } = session(body);
@@ -25,7 +24,7 @@ export async function POST({ request }) {
 	}
 
 	const recall_raw = body.recall;
-	const fail = clearFail(recall_raw);
+	const fail = clearFail(recall_raw, keystroke_log);
 
 	if (fail) {
 		await pb.collection(RESPONSES).update(row.id, {
@@ -34,24 +33,14 @@ export async function POST({ request }) {
 			status: 'excluded',
 			exclude_reason: fail
 		});
-		await pb
-			.collection(CHAINS)
-			.update(chain.id, { status: 'open', claimed_by: '', claimed_at: '' });
+		await reopen(pb, chain);
 	} else {
-		const recall_passed = cleanSpacing(recall_raw);
 		await pb.collection(RESPONSES).update(row.id, {
 			recall_raw,
-			recall_passed,
+			recall_passed: cleanSpacing(recall_raw),
 			keystroke_log,
-			status: 'passed'
-		});
-		const next = chain.generation + 1;
-		await pb.collection(CHAINS).update(chain.id, {
-			current_text: recall_passed,
-			generation: Math.min(next, GENERATIONS),
-			status: next > GENERATIONS ? 'done' : 'open',
-			claimed_by: '',
-			claimed_at: ''
+			status: 'submitted',
+			flags: offTopic(recall_raw, row.input_text) ? ['off_topic'] : []
 		});
 	}
 	return json({ ok: true });

@@ -4,7 +4,7 @@
 
 	// Starting cutoff, to be set from the pilot data: one input event adding more
 	// than this many characters is logged as a large insertion (autocomplete,
-	// dictation, a paste that got through)
+	// dictation, a paste that got through), which excludes the recall at submit
 	const LARGE_INSERTION = 20;
 
 	let { onComplete } = $props();
@@ -13,7 +13,7 @@
 	let submitting = $state(false);
 	let failed = $state(false);
 
-	// typing log: compare keystrokes with final length in R
+	// typing log: the server compares keystrokes with the recall's length
 	const t0 = performance.now();
 	const ms = () => Math.round(performance.now() - t0);
 	let log = { keystrokes: 0, input_events: 0, blocked_pastes: 0, first_key_ms: null, large_insertions: [] };

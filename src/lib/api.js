@@ -61,3 +61,5 @@ export const claim = () => enqueue(() => post('/api/claim', auth()));
 export const saveTrial = (trial) => enqueue(() => post('/api/save', { ...auth(), trial }));
 export const submitRecall = (recall, keystroke_log) =>
 	enqueue(() => post('/api/submit', { ...auth(), recall, keystroke_log }));
+// after the final questions are saved: the server decides the recall
+export const finish = () => enqueue(() => post('/api/finish', auth()));

@@ -12,14 +12,17 @@ Because the study runs online and unsupervised, the app also does the work an ex
 
 ## How chains move
 
-The browser never talks to the database directly. Four server routes do that work:
+The browser never talks to the database directly. Five server routes do that work:
 
 1. `start` makes the participant’s row, or finds it again after a reload
 2. `claim` gives them the next open slot, the lowest-numbered chain waiting on a generation. Because the database itself refuses to put two people in the same slot, two participants arriving at once can never collide
 3. `save` stores each screen’s data as the participant goes
-4. `submit` checks the recall and decides what happens next
+4. `submit` checks the recall for clear fails
+5. `finish` decides the recall once the final questions are in
 
-A recall that passes has its spacing cleaned up and becomes the chain’s next text. A recall that clearly fails (nearly empty, or containing the AI word) is excluded, and the same generation opens again for a new participant. Either way, the participant never finds out which happened. Everything subtler, like the typing log and the honesty item, is recorded and left for the analysis.
+Every check runs before the next generation reads the recall, so a recall that fails is replaced instead of passed on. A clear fail at submit (nearly empty, containing the AI word, or not typed according to the typing log) is excluded, and the same generation opens again for a new participant. So is a recall whose writer reports outside help in the final questions. A recall that shares too few words with the text it read, or whose writer failed the instructed-response item, holds the chain until someone reads it and decides with `npm run release`, and a Slack message announces it. Anything else has its spacing cleaned up and becomes the chain’s next text. The participant never finds out which happened.
+
+Someone who leaves while holding a slot (a reload, a closed tab, or 10 minutes away from the tab) loses it, and the generation runs again. Their row keeps everything they filled in, and if they come back they see a reference code to email about credit. A slot nobody comes back to is freed after an hour.
 
 ## Files
 
@@ -31,7 +34,7 @@ whispers/
 │   ├── routes/
 │   │   ├── +page.svelte          # starts the session and runs the study
 │   │   ├── +layout.svelte        # page shell, blocks phones and tablets
-│   │   └── api/                  # the four server routes: start, claim, save, submit
+│   │   └── api/                  # the five server routes: start, claim, save, submit, finish
 │   └── lib/
 │       ├── timeline.js           # every screen, in order (jsPsych)
 │       ├── materials.js          # the four paragraphs, the Latin square, the reading time
@@ -44,13 +47,16 @@ whispers/
 │       └── server/
 │           ├── pb.js             # the server’s login to PocketBase, and the study key check
 │           ├── input.js          # size and shape checks on everything the browser sends
-│           └── gate.js           # the submit checks and the spacing cleanup
+│           ├── gate.js           # the recall checks and the spacing cleanup
+│           └── chain.js          # reopening, advancing and abandoning a slot
 ├── pocketbase/
 │   ├── collections.json          # the database schema
 │   ├── CONVENTIONS.md            # how and why the schema is set up this way
 │   ├── import_schema.js          # adds the schema to a PocketBase instance
 │   ├── seed_chains.js            # creates the chains
-│   └── reset_test.js             # resets the test chains and deletes test rows
+│   ├── reset_test.js             # resets the test chains and deletes test rows
+│   ├── release.js                # decides a held recall
+│   └── export_responses.js       # saves every row to exports/ for the analysis
 ├── tests/
 │   └── flow.js                   # end-to-end check of the chain logic
 ├── static/                       # favicon and robots.txt
@@ -73,7 +79,7 @@ The browser never holds a database login, and the one account the server uses ca
 
 ## Testing
 
-Adding `?test=1` to the link (after the key) routes a session to the test chains, so a trial run never uses up a real one. `npm run reset-test` puts the test chains back to the start. `npm run test:flow` walks a chain through the API from start to finish, covering the handoff, both kinds of exclusion, two people claiming at once and a reload partway through. Setting `BASE` points it at the live site.
+Adding `?test=1` to the link (after the key) routes a session to the test chains, so a trial run never uses up a real one. `npm run reset-test` puts the test chains back to the start. `npm run test:flow` walks a chain through the API from start to finish, covering the handoff, each kind of exclusion, a held chain, two people claiming at once and a reload partway through. Setting `BASE` points it at the live site.
 
 ## Commands
 
@@ -100,12 +106,17 @@ Working on the app:
 Chains and the database:
 
     npm run seed -- --real 12 --test 2       create chains; existing ones are skipped, so a bigger number only adds
-    npm run import-schema                    apply pocketbase/collections.json (needs the superuser lines in .env, then remove them)
+    npm run import-schema                    apply pocketbase/collections.json, with the dashboard's superuser login (not whispers_app) typed in:
+    IFS= read -r "E?superuser email: "; IFS= read -rs "P?password: "; echo; PB_SUPERUSER_EMAIL=$E PB_SUPERUSER_PASSWORD=$P npm run import-schema
+    npm run release <row id>                 show a held recall and the text it read
+    npm run release <row id> pass            pass it on (or: exclude, so the generation runs again)
+    npm run export                           save every row to exports/whispers_responses.json (gitignored)
 
 Secrets on Cloudflare. They belong to the Worker, so they are set once per account and survive deploys.
 
     npx wrangler secret list
     npx wrangler secret put PB_APP_PASSWORD        paste the whispers_app password at the prompt
     grep '^STUDY_KEY=' .env | cut -d= -f2- | npx wrangler secret put STUDY_KEY      send the key straight from .env
+    npx wrangler secret put SLACK_WEBHOOK_URL      paste the Slack webhook that announces held chains
 
 To change the key, make a new one with `openssl rand -hex 16`, replace the line in `.env`, and run the last command again. Old links stop working at once.

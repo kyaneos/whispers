@@ -1,5 +1,6 @@
 import { json, error } from '@sveltejs/kit';
-import { getPb, getResponse, RESPONSES } from '#lib/server/pb.js';
+import { getPb, getResponse } from '#lib/server/pb.js';
+import { RESPONSES } from '#lib/server/chain.js';
 import { readJson, session, sized, text, LIMITS } from '#lib/server/input.js';
 
 // One generic save per trial. The full trial goes into `trials`, and a few

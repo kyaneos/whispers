@@ -1,10 +1,12 @@
 import { json } from '@sveltejs/kit';
-import { getPb, getResponse, checkStudyKey, CHAINS, RESPONSES } from '#lib/server/pb.js';
+import { getPb, getResponse, checkStudyKey } from '#lib/server/pb.js';
+import { RESPONSES, abandon } from '#lib/server/chain.js';
 import { readJson, text, ID, TOKEN } from '#lib/server/input.js';
 
 // Creates the participant's row, or finds it again after a reload.
-// A reload after claiming a slot counts as abandoning it, which frees the slot,
-// since the text has already been seen and the timeline can't resume mid-task.
+// Coming back while holding a slot (a reload, a closed tab, or the 10-minute
+// timeout) counts as abandoning it, which frees the slot, since the text has
+// already been seen and the timeline can't resume mid-task.
 export async function POST({ request }) {
 	const { id, token, pid, test, key } = await readJson(request);
 	checkStudyKey(key);
@@ -21,14 +23,9 @@ export async function POST({ request }) {
 						.collection(RESPONSES)
 						.update(row.id, { status: 'started', trials: [], instructions_attempts: 0 });
 				}
-				if (row.status === 'claimed') {
-					row = await pb.collection(RESPONSES).update(row.id, { status: 'abandoned' });
-					const chain = await pb.collection(CHAINS).getOne(row.chain_ref);
-					if (chain.claimed_by === row.id) {
-						await pb
-							.collection(CHAINS)
-							.update(chain.id, { status: 'open', claimed_by: '', claimed_at: '' });
-					}
+				if (row.status === 'claimed' || row.status === 'submitted') {
+					await abandon(pb, row);
+					row.status = 'abandoned';
 				}
 				return json({ id: row.id, token, status: row.status, test: row.test });
 			}

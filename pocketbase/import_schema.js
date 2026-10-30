@@ -2,17 +2,19 @@
 // collections in the file are sent, and nothing else on the instance is touched
 // or deleted. Prints PocketBase's exact error if it refuses.
 //   npm run import-schema
-// Needs a superuser login in .env (PB_SUPERUSER_EMAIL, PB_SUPERUSER_PASSWORD).
-// Remove those two lines again once the import is done.
+// Needs a superuser login, PB_SUPERUSER_EMAIL and PB_SUPERUSER_PASSWORD, given on
+// the command line (see the README) or as two lines in .env, removed afterwards.
 import PocketBase from 'pocketbase';
 import { readFileSync } from 'node:fs';
 
-const env = Object.fromEntries(
+const file = Object.fromEntries(
 	readFileSync('.env', 'utf8')
 		.split('\n')
 		.filter((line) => line.includes('=') && !line.startsWith('#'))
 		.map((line) => [line.slice(0, line.indexOf('=')).trim(), line.slice(line.indexOf('=') + 1).trim()])
 );
+// the command line wins over .env, so the superuser login never has to be saved
+const env = { ...file, ...process.env };
 
 for (const key of ['PB_URL', 'PB_SUPERUSER_EMAIL', 'PB_SUPERUSER_PASSWORD']) {
 	if (!env[key]) {

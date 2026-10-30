@@ -12,7 +12,9 @@
 		"seed": "node pocketbase/seed_chains.js",
 		"test:flow": "node tests/flow.js",
 		"import-schema": "node pocketbase/import_schema.js",
-		"reset-test": "node pocketbase/reset_test.js"
+		"reset-test": "node pocketbase/reset_test.js",
+		"export": "node pocketbase/export_responses.js",
+		"release": "node pocketbase/release.js"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.18.0",

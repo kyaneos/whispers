@@ -5,7 +5,7 @@ import survey from '@jspsych/plugin-survey';
 import SvelteComponentPlugin from './jspsych-plugin-svelte';
 import ReadScreen from './components/ReadScreen.svelte';
 import RecallScreen from './components/RecallScreen.svelte';
-import { claim } from './api';
+import { claim, finish } from './api';
 import { SLOT } from './stores';
 
 // The answer the instructed-response item asks for
@@ -263,6 +263,18 @@ jsPsych.abortExperiment(NO_SLOT_HTML)
 		func: () => jsPsych.data.getInteractionData().values()
 	};
 
+	// Everything is saved: the server now passes the recall on, holds it for
+	// review, or excludes it. A failure here shows nothing to the participant
+	const decide = {
+		type: callFunction,
+		data: { phase: 'finish' },
+		async: true,
+		func: (done) =>
+			finish()
+				.catch((err) => console.error('finish failed', err))
+				.then(() => done())
+	};
+
 	// 8. Debrief: the last screen, no button
 	const debrief = {
 		type: htmlButtonResponse,
@@ -282,6 +294,7 @@ jsPsych.abortExperiment(NO_SLOT_HTML)
 		recall,
 		postSurvey,
 		interaction,
+		decide,
 		debrief
 	];
 }

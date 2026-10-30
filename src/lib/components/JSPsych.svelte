@@ -7,12 +7,19 @@
 	// Trimmed from telephone-v1: one timeline, one save per trial, no resume
 	const { makeTimeline } = $props();
 
+	// Away from the tab this long while holding a slot ends the session
+	const TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
+	// the screens where someone holds a slot
+	const HOLDING_SLOT = ['read', 'recall', 'post_survey'];
+
 	let containerEl; // where jsPsych renders
 	let canExit = true;
+	let phase = null; // the phase tag of the screen on show
+	let hiddenAt = null; // when the tab was last hidden
 
 	// warn before leaving mid-task, keyed on the phase tag (never trial_type)
 	function on_trial_start(trial) {
-		const phase = trial?.data?.phase;
+		phase = trial?.data?.phase;
 		canExit = !['read', 'recall'].includes(phase);
 		if (phase) PHASE.set(phase);
 	}
@@ -27,8 +34,20 @@
 		if (!canExit) e.preventDefault();
 	}
 
+	// Back after 10+ minutes away while holding a slot: reload, and /api/start
+	// marks the session abandoned and shows the disconnected message
+	function onvisibilitychange() {
+		if (document.hidden) {
+			hiddenAt = Date.now();
+		} else if (hiddenAt && Date.now() - hiddenAt > TIMEOUT_MS && HOLDING_SLOT.includes(phase)) {
+			canExit = true; // no "Leave site?" warning for this reload
+			window.location.reload();
+		}
+	}
+
 	onMount(() => {
 		window.addEventListener('beforeunload', warn);
+		document.addEventListener('visibilitychange', onvisibilitychange);
 
 		const jsPsych = initJsPsych({
 			display_element: containerEl,
@@ -42,7 +61,10 @@
 		if (import.meta.env.DEV) window.jspsych = jsPsych;
 		jsPsych.run(makeTimeline(jsPsych));
 
-		return () => window.removeEventListener('beforeunload', warn);
+		return () => {
+			window.removeEventListener('beforeunload', warn);
+			document.removeEventListener('visibilitychange', onvisibilitychange);
+		};
 	});
 </script>
 

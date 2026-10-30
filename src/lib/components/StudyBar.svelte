@@ -11,7 +11,7 @@
 		{ phases: ['claim', 'no_slot', 'read'], label: 'Reading' },
 		{ phases: ['recall'], label: 'Writing' },
 		{ phases: ['post_survey'], label: 'Survey' },
-		{ phases: ['interaction', 'debrief', 'done'], label: 'Debrief' }
+		{ phases: ['interaction', 'finish', 'debrief', 'done'], label: 'Debrief' }
 	];
 
 	const step = $derived(STEPS.findIndex((s) => s.phases.includes($PHASE)));

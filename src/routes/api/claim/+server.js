@@ -1,7 +1,11 @@
 import { json, error } from '@sveltejs/kit';
-import { getPb, getResponse, CHAINS, RESPONSES } from '#lib/server/pb.js';
+import { getPb, getResponse } from '#lib/server/pb.js';
+import { CHAINS, RESPONSES, abandon } from '#lib/server/chain.js';
 import { readJson, session } from '#lib/server/input.js';
 import { originalText } from '#lib/materials.js';
+
+// A slot claimed this long ago belongs to someone who left and never came back
+const STALE_MS = 60 * 60 * 1000; // 1 hour
 
 // Claims the lowest-numbered open chain. The database enforces one active row
 // per (chain, generation) slot with a unique index, so if two people claim at
@@ -11,6 +15,18 @@ export async function POST({ request }) {
 	const pb = await getPb();
 	const row = await getResponse(pb, id, token);
 	if (row.status !== 'started') error(409, `cannot claim from status ${row.status}`);
+
+	// free stale slots first, so they can be claimed below
+	const cutoff = new Date(Date.now() - STALE_MS).toISOString().replace('T', ' ');
+	const stale = await pb.collection(CHAINS).getFullList({
+		filter: pb.filter('test = {:test} && status = "claimed" && claimed_at < {:cutoff}', {
+			test: row.test,
+			cutoff
+		})
+	});
+	for (const c of stale) {
+		await abandon(pb, await pb.collection(RESPONSES).getOne(c.claimed_by));
+	}
 
 	const chains = await pb.collection(CHAINS).getFullList({
 		filter: pb.filter('test = {:test} && status = "open"', { test: row.test }),

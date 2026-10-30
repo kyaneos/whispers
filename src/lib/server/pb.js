@@ -1,9 +1,7 @@
 import PocketBase from 'pocketbase';
 import { error } from '@sveltejs/kit';
 import { PB_URL, PB_APP_EMAIL, PB_APP_PASSWORD, STUDY_KEY } from '$app/env/private';
-
-export const CHAINS = 'whispers_chains';
-export const RESPONSES = 'whispers_responses';
+import { RESPONSES } from './chain.js';
 
 // Every database call goes through the server routes, logged in as the one
 // whispers_app account. Its rules reach only the whispers_ collections, so the

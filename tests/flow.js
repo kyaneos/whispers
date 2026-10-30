@@ -39,6 +39,15 @@ const person = async (pid, test = true) => {
 };
 const log = { keystrokes: 300, input_events: 300, blocked_pastes: 0, large_insertions: [] };
 
+// the final questions, then the server's decision on the recall
+const finishRun = async (p, outside_help = 'No', instructed_passed = true) => {
+	await post('/api/save', {
+		...p.auth,
+		trial: { phase: 'post_survey', response: { outside_help, instructed_response: 'Rarely' }, instructed_passed }
+	});
+	await post('/api/finish', p.auth);
+};
+
 // generation 1 claims test chain 1 and gets the original text in order 1
 const gen1 = await person('flow-gen1');
 const s1 = await post('/api/claim', gen1.auth);
@@ -52,6 +61,13 @@ check('generation 1 reads the original text, starting with the gossip paragraph'
 // a passing recall is cleaned (spacing only) and becomes generation 2's text
 const recall = 'Nancy  had an affair with   her professor and got pregnant.\n\n\nHe would not see her so she told his wife, who left him.  ';
 await post('/api/submit', { ...gen1.auth, recall, keystroke_log: log });
+{
+	// someone arriving now gets chain 2; their reload then frees chain 2 again
+	const early = await person('flow-early');
+	check('a submitted recall holds its slot until the final questions', (await post('/api/claim', early.auth)).chain === 2);
+	await post('/api/start', { ...early.auth, test: true, key: KEY });
+}
+await finishRun(gen1);
 const gen2 = await person('flow-gen2');
 const s2 = await post('/api/claim', gen2.auth);
 check('generation 2 gets the same chain', s2.chain === 1 && s2.generation === 2);
@@ -74,8 +90,32 @@ await post('/api/submit', { ...gen2b.auth, recall: 'Nancy professor', keystroke_
 const gen2c = await person('flow-gen2c');
 const s2c = await post('/api/claim', gen2c.auth);
 check('near-empty recall reopens generation 2', s2c.chain === 1 && s2c.generation === 2);
+await post('/api/submit', {
+	...gen2c.auth,
+	recall: 'Nancy had an affair with her professor and got pregnant, then told his wife about it.',
+	keystroke_log: { ...log, keystrokes: 10 }
+});
+const gen2d = await person('flow-gen2d');
+const s2d = await post('/api/claim', gen2d.auth);
+check('a recall typed with too few keys reopens generation 2', s2d.chain === 1 && s2d.generation === 2);
 
-// one open slot (test chain 2) and two people claiming at once: exactly one wins
+// outside help, after the final questions, also reopens the generation
+await post('/api/submit', { ...gen2d.auth, recall: s2.input_text, keystroke_log: log });
+await finishRun(gen2d, 'Yes');
+const gen2e = await person('flow-gen2e');
+const s2e = await post('/api/claim', gen2e.auth);
+check('outside help reopens generation 2', s2e.chain === 1 && s2e.generation === 2);
+
+// an off-topic recall holds the chain for review: nobody can claim it
+await post('/api/submit', {
+	...gen2e.auth,
+	recall: 'I went to the store yesterday and bought groceries for dinner, then watched a movie with my roommate.',
+	keystroke_log: log
+});
+await finishRun(gen2e);
+check('an off-topic recall is held', (await post('/api/start', { ...gen2e.auth, test: true, key: KEY })).status === 'held');
+
+// chain 1 is held, so test chain 2 is the one open slot. Two people claim it at once: exactly one wins
 const x = await person('flow-x');
 const y = await person('flow-y');
 const [cx, cy] = await Promise.all([post('/api/claim', x.auth), post('/api/claim', y.auth)]);
