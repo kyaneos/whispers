@@ -14,7 +14,17 @@ export async function getPb() {
 
 	const pb = new PocketBase(PB_URL);
 	pb.autoCancellation(false);
-	await pb.collection('whispers_app').authWithPassword(PB_APP_EMAIL, PB_APP_PASSWORD);
+	// sciminds.cloud limits how fast the app can log in, so a login refused as
+	// too fast (429) waits a second and tries again, up to 5 times
+	for (let tries = 1; ; tries++) {
+		try {
+			await pb.collection('whispers_app').authWithPassword(PB_APP_EMAIL, PB_APP_PASSWORD);
+			break;
+		} catch (err) {
+			if (err.status !== 429 || tries === 5) throw err;
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
+	}
 	cached = pb;
 	return pb;
 }

@@ -63,6 +63,25 @@ whispers/
 └── wrangler.jsonc                # Cloudflare settings
 ```
 
+## Changing it for a new study
+
+Every setting sits at the top of the file that uses it. These are the ones a new study is likely to change:
+
+| Setting | Where |
+|---|---|
+| The texts and their reading orders | `PARAGRAPHS` and `ORDERS` in `src/lib/materials.js` |
+| The reading speed behind the minimum reading time (400 words per minute) | `readingFloorMs` in `src/lib/materials.js` |
+| Generations per chain | `GENERATIONS` in `src/lib/server/chain.js` |
+| The cap on chains, and the last day new chains open | `MAX_CHAINS` and `NEW_CHAINS_UNTIL` in `src/routes/api/claim/+server.js` |
+| How long before an abandoned slot is freed | `STALE_MS` in `src/routes/api/claim/+server.js` |
+| Time away from the tab before a session ends | `TIMEOUT_MS` in `src/lib/components/JSPsych.svelte` |
+| The recall checks: near-empty, not typed, off-topic | `MIN_WORDS`, `MIN_TYPED_SHARE` and `MIN_OVERLAP` in `src/lib/server/gate.js` |
+| What counts as one large insertion | `LARGE_INSERTION` in `src/lib/components/RecallScreen.svelte` |
+| The AI canary word (the hidden note has to ask for the same word) | `CANARY` in `src/lib/server/gate.js` and `src/lib/components/HiddenNote.svelte` |
+| Consent, debrief, screening and the final questions | `src/lib/timeline.js` |
+| The contact email and the SONA completion URL | `src/lib/config.js` |
+| How many chains exist at the start | `npm run seed` (see Commands) |
+
 ## Setup
 
 The app is built with SvelteKit and jsPsych, stores its data in PocketBase, and runs on Cloudflare Workers.
