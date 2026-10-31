@@ -2,9 +2,9 @@
 export const CONTACT_EMAIL = 'jmoran@ucsd.edu';
 
 // The SONA study's client-side completion URL, from Study Info > Website, minus
-// its survey_code (added below). Fill in the two values before collection
+// its survey_code (added below). Study "Reading Short Passages"
 const SONA_CREDIT_URL =
-	'https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=EXPERIMENT_ID&credit_token=CREDIT_TOKEN';
+	'https://ucsd.sona-systems.com/webstudy_credit.aspx?experiment_id=3176&credit_token=d8bc2388d4fc499481fc13d9abf8a9f8';
 
 // SONA credit redirect, adapted from the Cognitive Tools Lab's guide (Judy Fan's lab):
 // https://github.com/cogtoolslab/handy_tips/blob/main/automate_sona_creditassignment.md
