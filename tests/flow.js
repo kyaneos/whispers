@@ -2,7 +2,7 @@
 //   npm run test:flow                              (local dev server from npm run dev)
 //   BASE=https://whispers.sciminds.app npm run test:flow
 // Needs test chains 1 and 2 fresh at generation 1 (npm run reset-test). It uses
-// them up, so reset them afterwards. Against a live URL it only
+// them up and opens new test chains, so reset afterwards. Against a live URL it only
 // touches test chains; the real-chain check runs on localhost only.
 import { readFileSync } from 'node:fs';
 const BASE = process.env.BASE || 'http://localhost:5173';
@@ -115,22 +115,38 @@ await post('/api/submit', {
 await finishRun(gen2e);
 check('an off-topic recall is held', (await post('/api/start', { ...gen2e.auth, test: true, key: KEY })).status === 'held');
 
-// chain 1 is held, so test chain 2 is the one open slot. Two people claim it at once: exactly one wins
+// chain 1 is held and skipped, so test chain 2 is the one open slot. Two people
+// claim at once: one gets chain 2, and the other gets a newly opened chain 3
 const x = await person('flow-x');
 const y = await person('flow-y');
 const [cx, cy] = await Promise.all([post('/api/claim', x.auth), post('/api/claim', y.auth)]);
-check('two simultaneous claims on one slot: exactly one wins', [cx, cy].filter((c) => c.chain).length === 1);
+check(
+	'two people at once: one gets the open slot, the other a new chain',
+	[cx.chain, cy.chain].sort().join() === '2,3'
+);
 
-// nothing open: the app says so and opens nothing new
-const z = await person('flow-z');
-check('no open slot returns no chain', (await post('/api/claim', z.auth)).chain === null);
+// nothing open again: two more people at once both get new chains, never the same one
+const z1 = await person('flow-z1');
+const z2 = await person('flow-z2');
+const [c1, c2] = await Promise.all([post('/api/claim', z1.auth), post('/api/claim', z2.auth)]);
+check('two people opening chains at once get different new chains', [c1.chain, c2.chain].sort().join() === '4,5');
+
+// a crowd of six on an empty pool: everyone gets their own slot
+const crowd = await Promise.all([1, 2, 3, 4, 5, 6].map((n) => person(`flow-crowd${n}`)));
+const crowdSlots = await Promise.all(crowd.map((p) => post('/api/claim', p.auth)));
+const crowdChains = crowdSlots.map((c) => c.chain);
+check(
+	'six people at once all get different chains',
+	crowdChains.every(Boolean) && new Set(crowdChains).size === 6,
+	crowdChains.join(',')
+);
 
 // a reload after claiming abandons the slot and frees it
-const holder = cx.chain ? x : y;
+const holder = cx.chain === 2 ? x : y;
 const again = await post('/api/start', { ...holder.auth, test: true, key: KEY });
 check('reload after claiming is marked abandoned', again.status === 'abandoned');
 const w = await person('flow-w');
-check('the freed slot can be claimed', (await post('/api/claim', w.auth)).chain !== null);
+check('the freed slot is claimed before any new chain opens', (await post('/api/claim', w.auth)).chain === 2);
 
 // the wrong key, an oversized body and a huge recall are all refused
 try {

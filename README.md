@@ -15,7 +15,7 @@ Because the study runs online and unsupervised, the app also does the work an ex
 The browser never talks to the database directly. Five server routes do that work:
 
 1. `start` makes the participant’s row, or finds it again after a reload
-2. `claim` gives them the next open slot, the lowest-numbered chain waiting on a generation. Because the database itself refuses to put two people in the same slot, two participants arriving at once can never collide
+2. `claim` gives them a slot. Finishing chains comes first: the open slot at the highest generation, ties to the lowest chain number, so a held or busy chain is simply skipped. With nothing open, a new chain opens, up to 32 real chains and never after Nov 20. Because the database itself refuses to put two people in the same slot or open the same chain number twice, two participants arriving at once can never collide
 3. `save` stores each screen’s data as the participant goes
 4. `submit` checks the recall for clear fails
 5. `finish` decides the recall once the final questions are in
@@ -87,12 +87,15 @@ Everything runs from this folder. The scripts read `.env`, which holds the Pocke
 
 Links. The key is the `STUDY_KEY` line of `.env`.
 
-    https://whispers.sciminds.app/?k=<key>            a participant
-    https://whispers.sciminds.app/?k=<key>&test=1     a trial run, on the test chains
+    https://whispers.sciminds.app/?k=<key>                                  a participant
+    https://whispers.sciminds.app/?k=<key>&survey_code=%SURVEY_CODE%        the study link to give SONA
+    https://whispers.sciminds.app/?k=<key>&test=1                           a trial run, on the test chains
+
+SONA fills in `%SURVEY_CODE%` for each participant. The debrief, screened-out and no-slot screens then show a "Finish and get credit" button that sends it back to SONA. The code is never saved. The button also shows if they come back after finishing. The SONA completion URL goes in `src/lib/config.js`.
 
 Trial runs:
 
-    npm run reset-test        put the test chains back to generation 1 and delete the test rows
+    npm run reset-test        put test chains 1 and 2 back to generation 1, delete later test chains and the test rows
     npm run test:flow         check the chain logic against a local dev server
     BASE=https://whispers.sciminds.app npm run test:flow      the same, against the live site
 
@@ -120,3 +123,7 @@ Secrets on Cloudflare. They belong to the Worker, so they are set once per accou
     npx wrangler secret put SLACK_WEBHOOK_URL      paste the Slack webhook that announces held chains
 
 To change the key, make a new one with `openssl rand -hex 16`, replace the line in `.env`, and run the last command again. Old links stop working at once.
+
+## Acknowledgments
+
+The SONA credit setup follows the Cognitive Tools Lab’s guide to automating SONA credit (Judy Fan’s lab): https://github.com/cogtoolslab/handy_tips/blob/main/automate_sona_creditassignment.md.

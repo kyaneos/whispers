@@ -7,6 +7,12 @@ import ReadScreen from './components/ReadScreen.svelte';
 import RecallScreen from './components/RecallScreen.svelte';
 import { claim, finish } from './api';
 import { SLOT } from './stores';
+import { CONTACT_EMAIL, CREDIT_LINK } from './config';
+
+// The button back to SONA, on every screen where the study ends (none on the test link)
+const CREDIT_BUTTON = CREDIT_LINK
+	? `<div class="mt-10 text-center"><a class="btn min-w-40 btn-lg btn-primary" href="${CREDIT_LINK}">Finish and get credit</a></div>`
+	: '';
 
 // The answer the instructed-response item asks for
 const INSTRUCTED_ANSWER = 'Rarely';
@@ -34,13 +40,11 @@ const DEBRIEF_HTML = `
 		<h2 class="text-center">Debrief</h2>
 		<p>Thank you so much for taking part! This study looks at how narratives change as they get passed from person to person, like in the game of telephone. The text you read was either one of our original passages or what the person before you remembered of it, and what you wrote will be passed on as the text for the next person in your chain. We’re curious whether some kinds of information hold up better than others as a story gets retold. Please don’t share the details of this study with anyone who might take part, since knowing what we’re looking for could change how they read and remember.</p>
 	</div>
-	<p class="mt-10 text-center italic text-base-content/70">You can close this tab now.</p>`;
+	${CREDIT_BUTTON || '<p class="mt-10 text-center italic text-base-content/70">You can close this tab now.</p>'}`;
 
-// The two screens where the study ends early
-const SCREENED_OUT_HTML =
-	'<div class="page prose max-w-none"><p>Thank you for your interest. This study needs participants who are native or fluent English speakers, so it ends here.</p></div>';
-const NO_SLOT_HTML =
-	'<div class="page prose max-w-none"><p>Sorry, there is no place open in the study right now. Please try again later.</p></div>';
+// The two screens where the study ends early. Both still get the credit button
+const SCREENED_OUT_HTML = `<div class="page prose max-w-none"><p>Thank you for your interest. This study needs participants who are native or fluent English speakers, so it ends here.</p></div>${CREDIT_BUTTON}`;
+const NO_SLOT_HTML = `<div class="page prose max-w-none"><p>Every place in the study is taken right now. Please contact ${CONTACT_EMAIL} if you have any questions.</p></div>${CREDIT_BUTTON}`;
 
 // Survey screens keep Continue grey and disabled until every required question
 // has an answer, the same as the buttons on the other screens

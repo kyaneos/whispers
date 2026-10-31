@@ -2,7 +2,7 @@
 	import { start } from '#lib/api.js';
 	import { makeTimeline } from '#lib/timeline.js';
 	import JSPsych from '#lib/components/JSPsych.svelte';
-	import { CONTACT_EMAIL } from '#lib/config.js';
+	import { CONTACT_EMAIL, CREDIT_LINK } from '#lib/config.js';
 
 	// what a returning browser sees, by its row's status
 	const MESSAGES = {
@@ -34,6 +34,14 @@
 		<section class="page prose mx-auto mt-16 max-w-xl text-center">
 			<p>{MESSAGES[session.status] || `Something went wrong. Please email ${CONTACT_EMAIL}.`}</p>
 		</section>
+		<!-- someone who reloads before clicking it still gets the way back to SONA -->
+		{#if CREDIT_LINK && MESSAGES[session.status]}
+			<div class="mt-10 text-center">
+				<!-- an outside link to SONA, so the in-app route check doesn't apply -->
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a class="btn min-w-40 btn-lg btn-primary" href={CREDIT_LINK}>Finish and get credit</a>
+			</div>
+		{/if}
 	{/if}
 {:catch err}
 	<section class="page prose mx-auto mt-16 max-w-xl text-center">

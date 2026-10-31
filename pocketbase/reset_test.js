@@ -1,5 +1,6 @@
-// Puts the test chains back to the start and deletes the test rows, so the
-// study can be run through again. Real chains and real rows are never touched.
+// Puts test chains 1 and 2 back to the start, deletes any test chains opened
+// after them and all test rows, so the study can be run through again. Real
+// chains and real rows are never touched.
 //   npm run reset-test
 import PocketBase from 'pocketbase';
 import { readFileSync } from 'node:fs';
@@ -23,6 +24,11 @@ console.log(`deleted ${rows.length} test rows`);
 
 const chains = await pb.collection('whispers_chains').getFullList({ filter: 'test = true' });
 for (const chain of chains) {
+	// test chains past 2 were opened on demand during a run
+	if (chain.chain > 2) {
+		await pb.collection('whispers_chains').delete(chain.id);
+		continue;
+	}
 	await pb.collection('whispers_chains').update(chain.id, {
 		generation: 1,
 		status: 'open',
@@ -31,4 +37,4 @@ for (const chain of chains) {
 		current_text: ''
 	});
 }
-console.log(`reset ${chains.length} test chains to generation 1`);
+console.log('reset test chains 1 and 2 to generation 1, and deleted any test chains after them');

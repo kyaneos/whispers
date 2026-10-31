@@ -2,7 +2,7 @@ import { countWords } from '#lib/materials.js';
 
 // Starting cutoffs, to be set from the pilot data. A recall under 10 words is
 // nearly empty (the Methods' starting point)
-export const MIN_WORDS = 10;
+const MIN_WORDS = 10;
 // typing fewer keys than half the recall's length means the text went in some other way
 const MIN_TYPED_SHARE = 0.5;
 // sharing fewer than 15% of its words with the text it read holds the recall for review
