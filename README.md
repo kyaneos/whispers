@@ -15,7 +15,7 @@ Because the study runs online and unsupervised, the app also does the work an ex
 The browser never talks to the database directly. Five server routes do that work:
 
 1. `start` makes the participant’s row, or finds it again after a reload
-2. `claim` gives them a slot. Finishing chains comes first: the open slot at the highest generation, ties to the lowest chain number, so a held or busy chain is simply skipped. With nothing open, a new chain opens, up to 32 real chains and never after Nov 20. Because the database itself refuses to put two people in the same slot or open the same chain number twice, two participants arriving at once can never collide
+2. `claim` gives them a slot. Finishing chains comes first: the open slot at the highest generation, ties to the lowest chain number, so a held or busy chain is simply skipped. With nothing open, a new chain opens, up to 32 real chains and never after the cutoff date (`NEW_CHAINS_UNTIL`). Because the database itself refuses to put two people in the same slot or open the same chain number twice, two participants arriving at once can never collide
 3. `save` stores each screen’s data as the participant goes
 4. `submit` checks the recall for clear fails
 5. `finish` decides the recall once the final questions are in

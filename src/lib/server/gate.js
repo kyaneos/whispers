@@ -39,7 +39,6 @@ export function offTopic(recall, inputText) {
 }
 
 // Spacing fixes only: trim, collapse runs of spaces, keep paragraph breaks.
-// Spelling correction is still an open decision
 export function cleanSpacing(recall) {
 	return recall
 		.replace(/\r\n?/g, '\n')

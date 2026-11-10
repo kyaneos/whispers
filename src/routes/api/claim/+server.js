@@ -9,7 +9,8 @@ const STALE_MS = 60 * 60 * 1000; // 1 hour
 
 // New chains open only up to the cap and the cutoff. Test chains don't count toward the cap
 const MAX_CHAINS = 32;
-const NEW_CHAINS_UNTIL = new Date('2026-11-21T00:00:00-08:00'); // the end of Fri Nov 20, San Diego time
+// one week after the study opens on SONA, or the end of Wed Nov 25 (San Diego time) if that comes first
+const NEW_CHAINS_UNTIL = new Date('2026-11-26T00:00:00-08:00');
 
 // Puts the participant in this chain's open slot and returns what they'll read.
 // Returns null if someone else got there first (the database allows one person per slot)
