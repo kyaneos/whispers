@@ -1,23 +1,8 @@
 import { json, error } from '@sveltejs/kit';
-import { SLACK_WEBHOOK_URL } from '$app/env/private';
 import { getPb, getResponse } from '#lib/server/pb.js';
 import { CHAINS, RESPONSES, reopen, advance } from '#lib/server/chain.js';
 import { readJson, session } from '#lib/server/input.js';
-
-// Posts to Slack that a chain is waiting for review. A failed message never
-// blocks the participant: the chain still waits, it just goes unannounced
-async function announce(text) {
-	if (!SLACK_WEBHOOK_URL) return;
-	try {
-		await fetch(SLACK_WEBHOOK_URL, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ text })
-		});
-	} catch (err) {
-		console.error('slack message failed', err);
-	}
-}
+import { announce } from '#lib/server/slack.js';
 
 // Runs once the final questions are saved, and decides the submitted recall.
 // Outside help excludes it and the generation reopens. A flag holds the chain
@@ -38,6 +23,7 @@ export async function POST({ request }) {
 	if (row.outside_help === 'Yes') {
 		await pb.collection(RESPONSES).update(row.id, { status: 'excluded', exclude_reason: 'outside_help' });
 		await reopen(pb, chain);
+		await announce(`${row.test ? '[test] ' : ''}Chain ${row.chain}, generation ${row.generation} excluded (outside_help), so it runs again`);
 	} else if (flags.length) {
 		await pb.collection(RESPONSES).update(row.id, { status: 'held', flags });
 		await pb.collection(CHAINS).update(chain.id, { status: 'held' });

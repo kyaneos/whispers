@@ -86,34 +86,30 @@ await post('/api/submit', {
 const gen2b = await person('flow-gen2b');
 const s2b = await post('/api/claim', gen2b.auth);
 check('canary word reopens generation 2 with the same text', s2b.generation === 2 && s2b.input_text === s2.input_text);
-await post('/api/submit', { ...gen2b.auth, recall: 'Nancy professor', keystroke_log: log });
-const gen2c = await person('flow-gen2c');
-const s2c = await post('/api/claim', gen2c.auth);
-check('near-empty recall reopens generation 2', s2c.chain === 1 && s2c.generation === 2);
 await post('/api/submit', {
-	...gen2c.auth,
+	...gen2b.auth,
 	recall: 'Nancy had an affair with her professor and got pregnant, then told his wife about it.',
 	keystroke_log: { ...log, keystrokes: 10 }
 });
-const gen2d = await person('flow-gen2d');
-const s2d = await post('/api/claim', gen2d.auth);
-check('a recall typed with too few keys reopens generation 2', s2d.chain === 1 && s2d.generation === 2);
+const gen2c = await person('flow-gen2c');
+const s2c = await post('/api/claim', gen2c.auth);
+check('a recall typed with too few keys reopens generation 2', s2c.chain === 1 && s2c.generation === 2);
 
 // outside help, after the final questions, also reopens the generation
-await post('/api/submit', { ...gen2d.auth, recall: s2.input_text, keystroke_log: log });
-await finishRun(gen2d, 'Yes');
-const gen2e = await person('flow-gen2e');
-const s2e = await post('/api/claim', gen2e.auth);
-check('outside help reopens generation 2', s2e.chain === 1 && s2e.generation === 2);
+await post('/api/submit', { ...gen2c.auth, recall: s2.input_text, keystroke_log: log });
+await finishRun(gen2c, 'Yes');
+const gen2d = await person('flow-gen2d');
+const s2d = await post('/api/claim', gen2d.auth);
+check('outside help reopens generation 2', s2d.chain === 1 && s2d.generation === 2);
 
 // an off-topic recall holds the chain for review: nobody can claim it
 await post('/api/submit', {
-	...gen2e.auth,
+	...gen2d.auth,
 	recall: 'I went to the store yesterday and bought groceries for dinner, then watched a movie with my roommate.',
 	keystroke_log: log
 });
-await finishRun(gen2e);
-check('an off-topic recall is held', (await post('/api/start', { ...gen2e.auth, test: true, key: KEY })).status === 'held');
+await finishRun(gen2d);
+check('an off-topic recall is held', (await post('/api/start', { ...gen2d.auth, test: true, key: KEY })).status === 'held');
 
 // chain 1 is held and skipped, so test chain 2 is the one open slot. Two people
 // claim at once: one gets chain 2, and the other gets a newly opened chain 3
@@ -147,6 +143,11 @@ const again = await post('/api/start', { ...holder.auth, test: true, key: KEY })
 check('reload after claiming is marked abandoned', again.status === 'abandoned');
 const w = await person('flow-w');
 check('the freed slot is claimed before any new chain opens', (await post('/api/claim', w.auth)).chain === 2);
+
+// a nearly empty recall of the full original text holds the chain for review
+await post('/api/submit', { ...w.auth, recall: 'Nancy professor', keystroke_log: log });
+await finishRun(w);
+check('a nearly empty recall is held', (await post('/api/start', { ...w.auth, test: true, key: KEY })).status === 'held');
 
 // the wrong key, an oversized body and a huge recall are all refused
 try {

@@ -20,7 +20,7 @@ The browser never talks to the database directly. Five server routes do that wor
 4. `submit` checks the recall for clear fails
 5. `finish` decides the recall once the final questions are in
 
-Every check runs before the next generation reads the recall, so a recall that fails is replaced instead of passed on. A clear fail at submit (nearly empty, containing the AI word, or not typed according to the typing log) is excluded, and the same generation opens again for a new participant. So is a recall whose writer reports outside help in the final questions. A recall that shares too few words with the text it read, or whose writer failed the instructed-response item, holds the chain until someone reads it and decides with `npm run release`, and a Slack message announces it. Anything else has its spacing cleaned up and becomes the chain’s next text. The participant never finds out which happened.
+Every check runs before the next generation reads the recall, so a recall that fails is replaced instead of passed on. A clear fail at submit (containing the AI word, or not typed according to the typing log) is excluded, and the same generation opens again for a new participant. So is a recall whose writer reports outside help in the final questions. A recall that is nearly empty (under 10 words and under a quarter of the words it read), that shares too few words with the text it read, or whose writer failed the instructed-response item, holds the chain until someone reads it and decides with `npm run release`. Every exclusion and every held chain posts a line to Slack. Anything else has its spacing cleaned up and becomes the chain’s next text. The participant never finds out which happened.
 
 Someone who leaves while holding a slot (a reload, a closed tab, or 10 minutes away from the tab) loses it, and the generation runs again. Their row keeps everything they filled in, and if they come back they see a reference code to email about credit. A slot nobody comes back to is freed after an hour.
 
@@ -48,6 +48,7 @@ whispers/
 │           ├── pb.js             # the server’s login to PocketBase, and the study key check
 │           ├── input.js          # size and shape checks on everything the browser sends
 │           ├── gate.js           # the recall checks and the spacing cleanup
+│           ├── slack.js          # the Slack line for each exclusion and held chain
 │           └── chain.js          # reopening, advancing and abandoning a slot
 ├── pocketbase/
 │   ├── collections.json          # the database schema
@@ -75,7 +76,7 @@ Every setting sits at the top of the file that uses it. These are the ones a new
 | The cap on chains, and the last day new chains open | `MAX_CHAINS` and `NEW_CHAINS_UNTIL` in `src/routes/api/claim/+server.js` |
 | How long before an abandoned slot is freed | `STALE_MS` in `src/routes/api/claim/+server.js` |
 | Time away from the tab before a session ends | `TIMEOUT_MS` in `src/lib/components/JSPsych.svelte` |
-| The recall checks: near-empty, not typed, off-topic | `MIN_WORDS`, `MIN_TYPED_SHARE` and `MIN_OVERLAP` in `src/lib/server/gate.js` |
+| The recall checks: near-empty, not typed, off-topic | `MIN_WORDS`, `MIN_WORD_SHARE`, `MIN_TYPED_SHARE` and `MIN_OVERLAP` in `src/lib/server/gate.js` |
 | What counts as one large insertion | `LARGE_INSERTION` in `src/lib/components/RecallScreen.svelte` |
 | The AI canary word (the hidden note has to ask for the same word) | `CANARY` in `src/lib/server/gate.js` and `src/lib/components/HiddenNote.svelte` |
 | Consent, debrief, screening and the final questions | `src/lib/timeline.js` |
@@ -139,7 +140,7 @@ Secrets on Cloudflare. They belong to the Worker, so they are set once per accou
     npx wrangler secret list
     npx wrangler secret put PB_APP_PASSWORD        paste the whispers_app password at the prompt
     grep '^STUDY_KEY=' .env | cut -d= -f2- | npx wrangler secret put STUDY_KEY      send the key straight from .env
-    npx wrangler secret put SLACK_WEBHOOK_URL      paste the Slack webhook that announces held chains
+    npx wrangler secret put SLACK_WEBHOOK_URL      paste the Slack webhook that announces exclusions and held chains
 
 To change the key, make a new one with `openssl rand -hex 16`, replace the line in `.env`, and run the last command again. Old links stop working at once.
 

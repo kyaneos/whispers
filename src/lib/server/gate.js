@@ -1,8 +1,10 @@
 import { countWords } from '#lib/materials.js';
 
-// Starting cutoffs, to be set from the pilot data. A recall under 10 words is
-// nearly empty (the Methods' starting point)
+// Starting cutoffs, to be set from the pilot data. A recall under 10 words that
+// is also under a quarter of the words it read is nearly empty, so a short
+// recall of an already short text isn't
 const MIN_WORDS = 10;
+const MIN_WORD_SHARE = 0.25;
 // typing fewer keys than half the recall's length means the text went in some other way
 const MIN_TYPED_SHARE = 0.5;
 // sharing fewer than 15% of its words with the text it read holds the recall for review
@@ -23,10 +25,15 @@ const words = (text) => new Set(text.toLowerCase().match(/[a-z]{4,}/g) || []);
 
 // Clear fails at submit. These exclude the recall and rerun the generation
 export function clearFail(recall, keystroke_log) {
-	if (countWords(recall) < MIN_WORDS) return 'near_empty';
 	if (CANARY.test(recall)) return 'canary';
 	if (!typed(recall, keystroke_log)) return 'not_typed';
 	return null;
+}
+
+// A judgment call: the recall is nearly empty, so the chain waits for a person to look at it
+export function nearEmpty(recall, inputText) {
+	const n = countWords(recall);
+	return n < MIN_WORDS && n < MIN_WORD_SHARE * countWords(inputText);
 }
 
 // A judgment call: too few of the recall's words appear in the

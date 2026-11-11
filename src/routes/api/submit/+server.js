@@ -2,7 +2,8 @@ import { json, error } from '@sveltejs/kit';
 import { getPb, getResponse } from '#lib/server/pb.js';
 import { CHAINS, RESPONSES, reopen } from '#lib/server/chain.js';
 import { readJson, session, sized, LIMITS } from '#lib/server/input.js';
-import { clearFail, offTopic, cleanSpacing } from '#lib/server/gate.js';
+import { clearFail, nearEmpty, offTopic, cleanSpacing } from '#lib/server/gate.js';
+import { announce } from '#lib/server/slack.js';
 
 // Recall submit. A clear fail excludes the row and the same generation reopens.
 // Anything else is saved as submitted, and the chain stays claimed until the
@@ -34,13 +35,17 @@ export async function POST({ request }) {
 			exclude_reason: fail
 		});
 		await reopen(pb, chain);
+		await announce(`${row.test ? '[test] ' : ''}Chain ${row.chain}, generation ${row.generation} excluded (${fail}), so it runs again`);
 	} else {
+		const flags = [];
+		if (nearEmpty(recall_raw, row.input_text)) flags.push('near_empty');
+		if (offTopic(recall_raw, row.input_text)) flags.push('off_topic');
 		await pb.collection(RESPONSES).update(row.id, {
 			recall_raw,
 			recall_passed: cleanSpacing(recall_raw),
 			keystroke_log,
 			status: 'submitted',
-			flags: offTopic(recall_raw, row.input_text) ? ['off_topic'] : []
+			flags
 		});
 	}
 	return json({ ok: true });
