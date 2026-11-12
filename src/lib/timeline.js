@@ -116,16 +116,17 @@ jsPsych.abortExperiment(SCREENED_OUT_HTML)
 	};
 
 	// 3. Instructions and a check on the rules, repeated until passed.
-	// Draft wording. It covers the rules only and never mentions memory
+	// It covers the rules only. Like the original booklet, it never mentions memory
+	// or says the text will be gone after the page turns
 	const instructions = {
 		type: htmlButtonResponse,
 		data: { phase: 'instructions' },
 		stimulus: () => `
 			<div class="page prose max-w-none text-left">
-				${attempts > 0 ? '<p class="text-error">Some of those answers weren’t right. Please read the instructions again.</p>' : ''}
+				${attempts > 0 ? '<p class="text-error">That answer wasn’t right. Please read the instructions again.</p>' : ''}
 				<h2>Instructions</h2>
 				<p>On the next page you will see a short text. Please read it through once, at your normal pace.</p>
-				<p>When you have finished, turn the page. Once you turn the page, you won’t be able to go back to the text.</p>
+				<p>When you have finished, turn the page.</p>
 			</div>`,
 		choices: ['Continue']
 	};
@@ -144,20 +145,12 @@ jsPsych.abortExperiment(SCREENED_OUT_HTML)
 					title: 'How many times should you read the text?',
 					isRequired: true,
 					choices: ['Once, straight through', 'As many times as I like']
-				},
-				{
-					type: 'radiogroup',
-					name: 'go_back',
-					title: 'After you turn the page, can you go back to the text?',
-					isRequired: true,
-					choices: ['Yes', 'No']
 				}
 			]
 		},
 		on_finish: (data) => {
 			attempts++;
-			data.passed =
-				data.response.read_times === 'Once, straight through' && data.response.go_back === 'No';
+			data.passed = data.response.read_times === 'Once, straight through';
 		}
 	};
 
