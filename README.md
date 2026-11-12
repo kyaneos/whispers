@@ -72,6 +72,7 @@ Every setting sits at the top of the file that uses it. These are the ones a new
 |---|---|
 | The texts and their reading orders | `PARAGRAPHS` and `ORDERS` in `src/lib/materials.js` |
 | The reading speed behind the minimum reading time (400 words per minute) | `readingFloorMs` in `src/lib/materials.js` |
+| Whether everyone goes to test chains (a pilot on the real link) | `PILOT_MODE` in `src/routes/api/start/+server.js` |
 | Generations per chain | `GENERATIONS` in `src/lib/server/chain.js` |
 | The cap on chains, and the last day new chains open | `MAX_CHAINS` and `NEW_CHAINS_UNTIL` in `src/routes/api/claim/+server.js` |
 | How long before an abandoned slot is freed | `STALE_MS` in `src/routes/api/claim/+server.js` |
@@ -99,7 +100,7 @@ The browser never holds a database login, and the one account the server uses ca
 
 ## Testing
 
-Adding `?test=1` to the link (after the key) routes a session to the test chains, so a trial run never uses up a real one. `npm run reset-test` puts the test chains back to the start. `npm run test:flow` walks a chain through the API from start to finish, covering the handoff, each kind of exclusion, a held chain, two people claiming at once and a reload partway through. Setting `BASE` points it at the live site.
+Adding `?test=1` to the link (after the key) routes a session to the test chains, so a trial run never uses up a real one. `npm run reset-test` puts the test chains back to the start. `npm run test:flow` walks a chain through the API from start to finish, covering the handoff, each kind of exclusion, a held chain, two people claiming at once and a reload partway through. Setting `BASE` points it at the live site. While `PILOT_MODE` is on, the two checks that expect the real link to make real rows fail ("switching to a test link starts a new test row" and "a real participant still gets real chain 1"). That is expected.
 
 ## Commands
 

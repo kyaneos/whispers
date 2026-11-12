@@ -4,6 +4,7 @@
 // Needs test chains 1 and 2 fresh at generation 1 (npm run reset-test). It uses
 // them up and opens new test chains, so reset afterwards. Against a live URL it only
 // touches test chains; the real-chain check runs on localhost only.
+// While PILOT_MODE is on, the two checks that expect real rows from the real link fail. That is expected.
 import { readFileSync } from 'node:fs';
 const BASE = process.env.BASE || 'http://localhost:5173';
 const LOCAL = BASE.includes('localhost');

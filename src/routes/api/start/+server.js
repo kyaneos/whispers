@@ -3,6 +3,11 @@ import { getPb, getResponse, checkStudyKey } from '#lib/server/pb.js';
 import { RESPONSES, abandon } from '#lib/server/chain.js';
 import { readJson, text, ID, TOKEN } from '#lib/server/input.js';
 
+// While true, every participant goes to test chains, even on the real link, so a pilot
+// can run on SONA's existing Study URL. Set to false after the prereg is registered,
+// right before the main study opens
+const PILOT_MODE = true;
+
 // Creates the participant's row, or finds it again after a reload.
 // Coming back while holding a slot (a reload, a closed tab, or the 10-minute
 // timeout) counts as abandoning it, which frees the slot, since the text has
@@ -10,13 +15,14 @@ import { readJson, text, ID, TOKEN } from '#lib/server/input.js';
 export async function POST({ request }) {
 	const { id, token, pid, test, key } = await readJson(request);
 	checkStudyKey(key);
+	const isTest = PILOT_MODE || test === true;
 	const pb = await getPb();
 
 	if (typeof id === 'string' && ID.test(id) && typeof token === 'string' && TOKEN.test(token)) {
 		try {
 			let row = await getResponse(pb, id, token);
 			// a saved row from the other kind of link (test vs real) never carries over
-			if (row.test === (test === true)) {
+			if (row.test === isTest) {
 				// not yet holding a slot (or none was open last time): start over cleanly
 				if (row.status === 'started' || row.status === 'no_slot') {
 					row = await pb
@@ -36,7 +42,7 @@ export async function POST({ request }) {
 
 	const row = await pb.collection(RESPONSES).create({
 		pid: text(pid, 100),
-		test: test === true,
+		test: isTest,
 		status: 'started',
 		token: crypto.randomUUID(),
 		user_agent: text(request.headers.get('user-agent'), 300)
