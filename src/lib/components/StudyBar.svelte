@@ -6,7 +6,7 @@
 	// The claim step shows no screen of its own, so it borrows the reading label.
 	const STEPS = [
 		{ phases: ['consent'], label: 'Consent' },
-		{ phases: ['screening', 'screened_out'], label: 'Screening' },
+		{ phases: ['screening'], label: 'Screening' },
 		{ phases: ['instructions', 'instructions_check'], label: 'Instructions' },
 		{ phases: ['claim', 'no_slot', 'read'], label: 'Reading' },
 		{ phases: ['recall'], label: 'Writing' },

@@ -6,6 +6,10 @@ export const CHAINS = 'whispers_chains';
 export const RESPONSES = 'whispers_responses';
 const GENERATIONS = 4;
 
+// New real chains open only up to this cap, 20 chains (5 per order). Test chains don't count toward it.
+// The places script reads it too
+export const MAX_CHAINS = 20;
+
 // Frees the slot, so the same generation runs again with someone new
 export function reopen(pb, chain) {
 	return pb.collection(CHAINS).update(chain.id, { status: 'open', claimed_by: '', claimed_at: '' });

@@ -2,14 +2,13 @@
 	import { start } from '#lib/api.js';
 	import { makeTimeline } from '#lib/timeline.js';
 	import JSPsych from '#lib/components/JSPsych.svelte';
-	import { CONTACT_EMAIL, CREDIT_LINK } from '#lib/config.js';
+	import { CONTACT_EMAIL, COMPLETION_LINK } from '#lib/config.js';
 
 	// what a returning browser sees, by its row's status
 	const MESSAGES = {
 		passed: 'You have already completed this study. Thank you!',
 		held: 'You have already completed this study. Thank you!',
-		excluded: 'You have already completed this study. Thank you!',
-		screened_out: 'Thank you for your interest. This study has ended for you.'
+		excluded: 'You have already completed this study. Thank you!'
 	};
 </script>
 
@@ -21,12 +20,12 @@
 	{#if session.status === 'started'}
 		<JSPsych {makeTimeline} />
 	{:else if session.status === 'abandoned'}
-		<!-- the reference code lets the researcher find the row, since SONA IDs are never stored -->
+		<!-- the reference code lets the researcher find the row, since Prolific IDs are never stored -->
 		<section class="page prose mx-auto mt-16 max-w-xl text-center">
 			<p>
 				It looks like you disconnected partway through the study, so it can’t continue from here.
-				Because the study wasn’t finished, credit isn’t granted automatically. If you think you
-				should get credit, for example if you closed the tab by accident, please email
+				Because the study wasn’t finished, payment isn’t granted automatically. If you think you
+				should get paid, for example if you closed the tab by accident, please email
 				{CONTACT_EMAIL} and include this reference code: <strong>{session.id.slice(0, 6)}</strong>.
 			</p>
 		</section>
@@ -34,12 +33,12 @@
 		<section class="page prose mx-auto mt-16 max-w-xl text-center">
 			<p>{MESSAGES[session.status] || `Something went wrong. Please email ${CONTACT_EMAIL}.`}</p>
 		</section>
-		<!-- someone who reloads before clicking it still gets the way back to SONA -->
-		{#if CREDIT_LINK && MESSAGES[session.status]}
+		<!-- someone who reloads before clicking it still gets the way back to Prolific -->
+		{#if COMPLETION_LINK && MESSAGES[session.status]}
 			<div class="mt-10 text-center">
-				<!-- an outside link to SONA, so the in-app route check doesn't apply -->
+				<!-- an outside link to Prolific, so the in-app route check doesn't apply -->
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-				<a class="btn min-w-40 btn-lg btn-primary" href={CREDIT_LINK}>Finish and get credit</a>
+				<a class="btn min-w-40 btn-lg btn-primary" href={COMPLETION_LINK}>Finish and return to Prolific</a>
 			</div>
 		{/if}
 	{/if}

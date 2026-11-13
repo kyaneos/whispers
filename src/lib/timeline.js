@@ -7,18 +7,15 @@ import ReadScreen from './components/ReadScreen.svelte';
 import RecallScreen from './components/RecallScreen.svelte';
 import { claim, finish } from './api';
 import { SLOT } from './stores';
-import { CONTACT_EMAIL, CREDIT_LINK } from './config';
+import { CONTACT_EMAIL, COMPLETION_LINK } from './config';
 
-// The button back to SONA, on every screen where the study ends (none on the test link)
-const CREDIT_BUTTON = CREDIT_LINK
-	? `<div class="mt-10 text-center"><a class="btn min-w-40 btn-lg btn-primary" href="${CREDIT_LINK}">Finish and get credit</a></div>`
+// The button back to Prolific on the debrief (none on the test link)
+const COMPLETION_BUTTON = COMPLETION_LINK
+	? `<div class="mt-10 text-center"><a class="btn min-w-40 btn-lg btn-primary" href="${COMPLETION_LINK}">Finish and return to Prolific</a></div>`
 	: '';
 
 // The answer the instructed-response item asks for
 const INSTRUCTED_ANSWER = 'Rarely';
-
-// English fluency levels that pass screening
-const FLUENT = ['native', 'fluent'];
 
 // The official consent text for course IRB protocol #811391, "Reproducibility of
 // Psychological Science and Instruction", word for word. Only the spacing and one
@@ -30,7 +27,7 @@ const CONSENT_HTML = `
 		<p>The purpose of this study is to better understand how well previously published studies in the psychological field replicate online and with different populations. Your participation in this research should last approximately 5-30 minutes. If you agree to take part in this study, you may be asked to view a set of stimuli, including pictures, sounds, written text, or videos and then giving some responses via key-presses, verbally, or with paper-and-pencil. We may also observe your choices or preferences among an array of stimuli. These stimuli will be taken directly from or closely adapted from studies that already exist in the published psychological literature. Stimuli will include, e.g., pictures of objects and human faces, audio and video clips, short text passages, etc. None of the stimuli will be disturbing, threatening, or offensive. The online and in-person experiments described in this protocol will take no more than 30 minutes. An example game you might play would be to click on an image on the screen that matches a word you hear being said out loud. Your total expected time commitment for this study is between 5-30 minutes, and is specified in the study description.</p>
 		<p>Your participation in this study is completely voluntary and you can withdraw at any time. Choosing not to participate or withdrawing will result in no penalty or loss of benefits to which you are entitled. You are free to skip any question that you choose.</p>
 		<p>We will not be asking for any personally identifying information, and we will handle responses as confidentially as possible. Your SONA or Prolific IDs will never be tied to your responses on this survey. However, we cannot guarantee the confidentiality of information transmitted over the Internet. To minimize this risk, data containing anything that might be personally identifiable (e.g. Prolific IDs or IP addresses) will be encrypted on transfer and storage and will only be accessible to qualified lab personnel. We will be keeping data collected as part of this experiment indefinitely. This anonymized data (containing neither Prolific IDs nor IP addresses) may be shared with the scientific community or with other participants to be used as stimuli in future studies.</p>
-		<p>If you have questions about this project or if you have a research-related problem, you may contact the researcher(s), Dr. Bria Long, brlong@ucsd.edu. If you have any questions concerning your rights as a research subject, you may contact the UC San Diego Office of IRB Administration at irb@ucsd.edu or 858-246-4777.</p>
+		<p>If you have questions about this project or if you have a research-related problem, you may contact the researcher(s), Justin Bonagura Moran (jmoran@ucsd.edu) or Dr. Bria Long (brlong@ucsd.edu). If you have any questions concerning your rights as a research subject, you may contact the UC San Diego Office of IRB Administration at irb@ucsd.edu or 858-246-4777.</p>
 		<p>By participating in this research you are indicating that you are at least 18 years old, have read this consent form, and agree to participate in this research study. Please keep this consent form for your records.</p>
 	</div>`;
 
@@ -40,11 +37,10 @@ const DEBRIEF_HTML = `
 		<h2 class="text-center">Debrief</h2>
 		<p>Thank you so much for taking part! This study looks at how narratives change as they get passed from person to person, like in the game of telephone. The text you read was either one of our original passages or what the person before you remembered of it, and what you wrote will be passed on as the text for the next person in your chain. We’re curious whether some kinds of information hold up better than others as a story gets retold. Please don’t share the details of this study with anyone who might take part, since knowing what we’re looking for could change how they read and remember.</p>
 	</div>
-	${CREDIT_BUTTON || '<p class="mt-10 text-center italic text-base-content/70">You can close this tab now.</p>'}`;
+	${COMPLETION_BUTTON || '<p class="mt-10 text-center italic text-base-content/70">You can close this tab now.</p>'}`;
 
-// The two screens where the study ends early. Both still get the credit button
-const SCREENED_OUT_HTML = `<div class="page prose max-w-none"><p>Thank you for your interest. This study needs participants who are native or fluent English speakers, so it ends here.</p></div>${CREDIT_BUTTON}`;
-const NO_SLOT_HTML = `<div class="page prose max-w-none"><p>Every place in the study is taken right now. Please contact ${CONTACT_EMAIL} if you have any questions.</p></div>${CREDIT_BUTTON}`;
+// The screen where the study ends early, with no completion code
+const NO_SLOT_HTML = `<div class="page prose max-w-none"><p>Every place in the study is taken right now. Please return the study on Prolific. If you have any questions, contact ${CONTACT_EMAIL}.</p></div>`;
 
 // Survey screens keep Continue grey and disabled until every required question
 // has an answer, the same as the buttons on the other screens
@@ -74,7 +70,8 @@ export function makeTimeline(jsPsych) {
 		choices: ['I agree']
 	};
 
-	// 2. Screening: native or fluent English passes (item 1 of telephone-v1's Quiz)
+	// 2. Screening: English fluency (item 1 of telephone-v1's Quiz). The answer is saved
+	// but screens no one out, since a Prolific prescreener handles fluency
 	const screening = {
 		type: survey,
 		data: { phase: 'screening' },
@@ -96,23 +93,7 @@ export function makeTimeline(jsPsych) {
 					]
 				}
 			]
-		},
-		on_finish: (data) => {
-			data.passed = FLUENT.includes(data.response.english_fluency);
 		}
-	};
-
-	const screenedOut = {
-		timeline: [
-			{
-				type: callFunction,
-				data: { phase: 'screened_out' },
-				func: () =>
-jsPsych.abortExperiment(SCREENED_OUT_HTML)
-			}
-		],
-		conditional_function: () =>
-			!jsPsych.data.get().filter({ phase: 'screening' }).last(1).values()[0].passed
 	};
 
 	// 3. Instructions and a check on the rules, repeated until passed.
@@ -217,7 +198,7 @@ jsPsych.abortExperiment(NO_SLOT_HTML)
 					type: 'radiogroup',
 					name: 'outside_help',
 					title:
-						'Did you use any outside help while writing your response, such as notes, another person, or an AI tool? Please answer honestly. Your answer won’t affect your credit.',
+						'Did you use any outside help while writing your response, such as notes, another person, or an AI tool? Please answer honestly. Your answer won’t affect your payment.',
 					isRequired: true,
 					choices: ['No', 'Yes']
 				},
@@ -283,7 +264,6 @@ jsPsych.abortExperiment(NO_SLOT_HTML)
 	return [
 		consent,
 		screening,
-		screenedOut,
 		instructionsLoop,
 		claimSlot,
 		noSlot,

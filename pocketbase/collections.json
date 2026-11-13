@@ -293,7 +293,6 @@
         "maxSelect": 1,
         "values": [
           "started",
-          "screened_out",
           "no_slot",
           "claimed",
           "submitted",
@@ -498,14 +497,6 @@
         "required": false,
         "presentable": false,
         "primaryKey": false,
-        "system": false
-      },
-      {
-        "name": "screening_passed",
-        "type": "bool",
-        "required": false,
-        "hidden": false,
-        "presentable": false,
         "system": false
       },
       {

@@ -4,7 +4,7 @@ import { RESPONSES, abandon } from '#lib/server/chain.js';
 import { readJson, text, ID, TOKEN } from '#lib/server/input.js';
 
 // While true, every participant goes to test chains, even on the real link, so a pilot
-// can run on SONA's existing Study URL. Set to false after the prereg is registered,
+// can run on the real Prolific link. Set to false after the prereg is registered,
 // right before the main study opens
 const PILOT_MODE = true;
 

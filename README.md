@@ -6,7 +6,7 @@ It runs at [whispers.sciminds.app](https://whispers.sciminds.app) and was built 
 
 ## What a participant does
 
-A participant consents, answers a screening question about English fluency, and passes a short check on the rules (read the text once, no going back). They then read their text, which stays on screen for a minimum reading time, write out what they remember, and answer a few final questions about outside help, age and gender before the debrief. Generation 1, the first participant in a chain, reads the original text: the four paragraphs, in one of four orders from a balanced Latin square. Generations 2 to 4 each read the recall of the generation before them.
+A participant consents, answers a question about their English fluency, and passes a short check on the rules (read the text once). They then read their text, which stays on screen for a minimum reading time, write out what they remember, and answer a few final questions about outside help, age and gender before the debrief. Generation 1, the first participant in a chain, reads the original text: the four paragraphs, in one of four orders from a balanced Latin square. Generations 2 to 4 each read the recall of the generation before them.
 
 Because the study runs online and unsupervised, the app also does the work an experimenter in the room would have done. The text can’t be selected or copied, pasting into the recall box is blocked, and every recall comes with a log of how it was typed and whether the participant left the page. Both screens also carry instructions that only an AI would see, which ask it to use a particular uncommon word, so that AI-written recalls can be flagged.
 
@@ -15,14 +15,14 @@ Because the study runs online and unsupervised, the app also does the work an ex
 The browser never talks to the database directly. Five server routes do that work:
 
 1. `start` makes the participant’s row, or finds it again after a reload
-2. `claim` gives them a slot. Finishing chains comes first: the open slot at the highest generation, ties to the lowest chain number, so a held or busy chain is simply skipped. With nothing open, a new chain opens, up to 32 real chains and never after the cutoff date (`NEW_CHAINS_UNTIL`). Because the database itself refuses to put two people in the same slot or open the same chain number twice, two participants arriving at once can never collide
+2. `claim` gives them a slot. Finishing chains comes first: the open slot at the highest generation, ties to the lowest chain number, so a held or busy chain is simply skipped. With nothing open, a new chain opens, up to 20 real chains (`MAX_CHAINS`). Because the database itself refuses to put two people in the same slot or open the same chain number twice, two participants arriving at once can never collide
 3. `save` stores each screen’s data as the participant goes
 4. `submit` checks the recall for clear fails
 5. `finish` decides the recall once the final questions are in
 
 Every check runs before the next generation reads the recall, so a recall that fails is replaced instead of passed on. A clear fail at submit (containing the AI word, or not typed according to the typing log) is excluded, and the same generation opens again for a new participant. So is a recall whose writer reports outside help in the final questions. A recall that is nearly empty (under 10 words and under a quarter of the words it read), that shares too few words with the text it read, or whose writer failed the instructed-response item, holds the chain until someone reads it and decides with `npm run release`. Every exclusion and every held chain posts a line to Slack. Anything else has its spacing cleaned up and becomes the chain’s next text. The participant never finds out which happened.
 
-Someone who leaves while holding a slot (a reload, a closed tab, or 10 minutes away from the tab) loses it, and the generation runs again. Their row keeps everything they filled in, and if they come back they see a reference code to email about credit. A slot nobody comes back to is freed after an hour.
+Someone who leaves while holding a slot (a reload, a closed tab, or 10 minutes away from the tab) loses it, and the generation runs again. Their row keeps everything they filled in, and if they come back they see a reference code to email about payment. A slot nobody comes back to is freed after an hour.
 
 ## Files
 
@@ -74,14 +74,14 @@ Every setting sits at the top of the file that uses it. These are the ones a new
 | The reading speed behind the minimum reading time (400 words per minute) | `readingFloorMs` in `src/lib/materials.js` |
 | Whether everyone goes to test chains (a pilot on the real link) | `PILOT_MODE` in `src/routes/api/start/+server.js` |
 | Generations per chain | `GENERATIONS` in `src/lib/server/chain.js` |
-| The cap on chains, and the last day new chains open | `MAX_CHAINS` and `NEW_CHAINS_UNTIL` in `src/routes/api/claim/+server.js` |
+| The cap on chains | `MAX_CHAINS` in `src/lib/server/chain.js` |
 | How long before an abandoned slot is freed | `STALE_MS` in `src/routes/api/claim/+server.js` |
 | Time away from the tab before a session ends | `TIMEOUT_MS` in `src/lib/components/JSPsych.svelte` |
 | The recall checks: near-empty, not typed, off-topic | `MIN_WORDS`, `MIN_WORD_SHARE`, `MIN_TYPED_SHARE` and `MIN_OVERLAP` in `src/lib/server/gate.js` |
 | What counts as one large insertion | `LARGE_INSERTION` in `src/lib/components/RecallScreen.svelte` |
 | The AI canary word (the hidden note has to ask for the same word) | `CANARY` in `src/lib/server/gate.js` and `src/lib/components/HiddenNote.svelte` |
 | Consent, debrief, screening and the final questions | `src/lib/timeline.js` |
-| The contact email and the SONA completion URL | `src/lib/config.js` |
+| The contact email and the Prolific completion URL | `src/lib/config.js` |
 | How many chains exist at the start | `npm run seed` (see Commands) |
 
 ## Setup
@@ -109,14 +109,16 @@ Everything runs from this folder. The scripts read `.env`, which holds the Pocke
 Links. The key is the `STUDY_KEY` line of `.env`.
 
     https://whispers.sciminds.app/?k=<key>                                  a participant
-    https://whispers.sciminds.app/?k=<key>&survey_code=%SURVEY_CODE%        the study link to give SONA
+    https://whispers.sciminds.app/?k=<key>&PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}        the study link to give Prolific
     https://whispers.sciminds.app/?k=<key>&test=1                           a trial run, on the test chains
 
-SONA fills in `%SURVEY_CODE%` for each participant. The debrief, screened-out and no-slot screens then show a "Finish and get credit" button that sends it back to SONA. The code is never saved. The button also shows if they come back after finishing. The SONA completion URL goes in `src/lib/config.js`.
+Prolific fills in the three IDs for each participant. When `PROLIFIC_PID` is there, the debrief shows a "Finish and return to Prolific" button that carries the completion code. Everyone who reaches the debrief gets it, excluded and held recalls included, since exclusions happen afterward in the data. The button also shows if they come back after finishing. The PID is never saved. Someone who times out, or finds every place taken, gets no code and is asked to return the study. The completion URL goes in `src/lib/config.js`.
+
+Each generation can start only after the one before it, so places go out on Prolific in batches. Before adding places, run `npm run places`. It prints how many to add so that everyone who arrives finds a slot waiting: the open chains plus the new chains still allowed under the cap, minus anyone who has started but not reached the text yet. Held chains don't count until they are released.
 
 Trial runs:
 
-    npm run reset-test        put test chains 1 and 2 back to generation 1, delete later test chains and the test rows
+    npm run reset-test        put test chains 1 and 2 back to generation 1, delete later test chains and the test rows (pilot data included, so export first)
     npm run test:flow         check the chain logic against a local dev server
     BASE=https://whispers.sciminds.app npm run test:flow      the same, against the live site
 
@@ -129,11 +131,12 @@ Working on the app:
 
 Chains and database:
 
-    npm run seed -- --real 12 --test 2       create chains; existing ones are skipped, so a bigger number only adds
+    npm run seed -- --real 20 --test 2       create chains; existing ones are skipped, so a bigger number only adds
     npm run import-schema                    apply pocketbase/collections.json, with the dashboard's superuser login (not whispers_app) typed in:
     IFS= read -r "E?superuser email: "; IFS= read -rs "P?password: "; echo; PB_SUPERUSER_EMAIL=$E PB_SUPERUSER_PASSWORD=$P npm run import-schema
     npm run release <row id>                 show a held recall and the text it read
     npm run release <row id> pass            pass it on (or: exclude, so the generation runs again)
+    npm run places                           how many places to add on Prolific right now
     npm run export                           save every row to exports/whispers_responses.json (gitignored)
 
 Secrets on Cloudflare. They belong to the Worker, so they are set once per account and survive deploys.
@@ -144,7 +147,3 @@ Secrets on Cloudflare. They belong to the Worker, so they are set once per accou
     npx wrangler secret put SLACK_WEBHOOK_URL      paste the Slack webhook that announces exclusions and held chains
 
 To change the key, make a new one with `openssl rand -hex 16`, replace the line in `.env`, and run the last command again. Old links stop working at once.
-
-## Acknowledgments
-
-The SONA credit setup follows the Cognitive Tools Lab’s guide to automating SONA credit (Judy Fan’s lab): https://github.com/cogtoolslab/handy_tips/blob/main/automate_sona_creditassignment.md.

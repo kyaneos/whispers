@@ -1,16 +1,11 @@
 import { json, error } from '@sveltejs/kit';
 import { getPb, getResponse } from '#lib/server/pb.js';
-import { CHAINS, RESPONSES, abandon } from '#lib/server/chain.js';
+import { CHAINS, RESPONSES, MAX_CHAINS, abandon } from '#lib/server/chain.js';
 import { readJson, session } from '#lib/server/input.js';
 import { originalText, orderForChain } from '#lib/materials.js';
 
 // A slot held this long belongs to someone who left and never came back
 const STALE_MS = 60 * 60 * 1000; // 1 hour
-
-// New chains open only up to the cap and the cutoff. Test chains don't count toward the cap
-const MAX_CHAINS = 32;
-// one week after the study opens on SONA, or the end of Wed Nov 25 (San Diego time) if that comes first
-const NEW_CHAINS_UNTIL = new Date('2026-11-26T00:00:00-08:00');
 
 // Puts the participant in this chain's open slot and returns what they'll read.
 // Returns null if someone else got there first (the database allows one person per slot)
@@ -38,9 +33,8 @@ async function takeSlot(pb, row, c) {
 	return { chain: c.chain, generation: c.generation, order: c.order, input_text };
 }
 
-// The next chain number, or null when past the cutoff or at the cap
+// The next chain number, or null at the cap
 async function nextChainNumber(pb, test) {
-	if (Date.now() >= NEW_CHAINS_UNTIL.getTime()) return null;
 	const last = await pb.collection(CHAINS).getList(1, 1, {
 		filter: pb.filter('test = {:test}', { test }),
 		sort: '-chain'

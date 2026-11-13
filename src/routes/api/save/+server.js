@@ -25,9 +25,6 @@ export async function POST({ request }) {
 			break;
 		case 'screening':
 			update.english_fluency = text(answers.english_fluency, 50);
-			update.screening_passed = trial.passed === true;
-			// only before a slot is held, so a screen-out can never strand a chain
-			if (trial.passed !== true && row.status === 'started') update.status = 'screened_out';
 			break;
 		case 'instructions_check':
 			update.instructions_attempts = (row.instructions_attempts || 0) + 1;
