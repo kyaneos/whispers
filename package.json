@@ -14,7 +14,8 @@
 		"import-schema": "node pocketbase/import_schema.js",
 		"reset-test": "node pocketbase/reset_test.js",
 		"export": "node pocketbase/export_responses.js",
-		"release": "node pocketbase/release.js"
+		"release": "node pocketbase/release.js",
+		"places": "node pocketbase/places.js"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.18.0",
