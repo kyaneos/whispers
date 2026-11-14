@@ -2,7 +2,7 @@
 	import { start } from '#lib/api.js';
 	import { makeTimeline } from '#lib/timeline.js';
 	import JSPsych from '#lib/components/JSPsych.svelte';
-	import { CONTACT_EMAIL, COMPLETION_LINK } from '#lib/config.js';
+	import { CONTACT_EMAIL, COMPLETION_CODE, COMPLETION_LINK } from '#lib/config.js';
 
 	// what a returning browser sees, by its row's status
 	const MESSAGES = {
@@ -39,6 +39,9 @@
 				<!-- an outside link to Prolific, so the in-app route check doesn't apply -->
 				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 				<a class="btn min-w-40 btn-lg btn-primary" href={COMPLETION_LINK}>Finish and return to Prolific</a>
+				<p class="mt-4 text-sm text-base-content/70">
+					If the button doesn't work, enter this code on Prolific: <strong>{COMPLETION_CODE}</strong>
+				</p>
 			</div>
 		{/if}
 	{/if}

@@ -7,11 +7,11 @@ import ReadScreen from './components/ReadScreen.svelte';
 import RecallScreen from './components/RecallScreen.svelte';
 import { claim, finish } from './api';
 import { SLOT } from './stores';
-import { CONTACT_EMAIL, COMPLETION_LINK } from './config';
+import { CONTACT_EMAIL, COMPLETION_CODE, COMPLETION_LINK } from './config';
 
 // The button back to Prolific on the debrief (none on the test link)
 const COMPLETION_BUTTON = COMPLETION_LINK
-	? `<div class="mt-10 text-center"><a class="btn min-w-40 btn-lg btn-primary" href="${COMPLETION_LINK}">Finish and return to Prolific</a></div>`
+	? `<div class="mt-10 text-center"><a class="btn min-w-40 btn-lg btn-primary" href="${COMPLETION_LINK}">Finish and return to Prolific</a><p class="mt-4 text-sm text-base-content/70">If the button doesn't work, enter this code on Prolific: <strong>${COMPLETION_CODE}</strong></p></div>`
 	: '';
 
 // The answer the instructed-response item asks for
