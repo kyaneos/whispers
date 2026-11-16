@@ -6,7 +6,7 @@ import { readJson, text, ID, TOKEN } from '#lib/server/input.js';
 // While true, every participant goes to test chains, even on the real link, so a pilot
 // can run on the real Prolific link. Set to false after the prereg is registered,
 // right before the main study opens
-const PILOT_MODE = true;
+const PILOT_MODE = false;
 
 // Creates the participant's row, or finds it again after a reload.
 // Coming back while holding a slot (a reload, a closed tab, or the 10-minute
