@@ -1,11 +1,13 @@
 // Saves every row of whispers_responses to one JSON file for the analysis.
 // JSON keeps the nested fields (trials, keystroke log, interaction data) intact.
 // The file holds participant data, so exports/ is gitignored.
-//   npm run export
+//   npm run export                     saves to exports/whispers_responses.json
+//   npm run export -- <file path>      saves there instead, e.g. a study's private data folder
 import PocketBase from 'pocketbase';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 
-const OUT = 'exports/whispers_responses.json';
+const OUT = process.argv[2] || 'exports/whispers_responses.json';
 
 const env = Object.fromEntries(
 	readFileSync('.env', 'utf8')
@@ -28,6 +30,6 @@ for (const row of rows) {
 	delete row.collectionName;
 }
 
-mkdirSync('exports', { recursive: true });
+mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify(rows, null, 2));
 console.log(`saved ${rows.length} rows to ${OUT}`);

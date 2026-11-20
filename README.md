@@ -12,81 +12,81 @@ Because the study runs online and unsupervised, the app also does the work an ex
 
 ## How chains move
 
-The browser never talks to the database directly. Five server routes do that work:
+Five server routes push data to the database:
 
 1. `start` makes the participant’s row, or finds it again after a reload
-2. `claim` gives them a slot. Finishing chains comes first: the open slot at the highest generation, ties to the lowest chain number, so a held or busy chain is simply skipped. With nothing open, a new chain opens, up to 20 real chains (`MAX_CHAINS`). Because the database itself refuses to put two people in the same slot or open the same chain number twice, two participants arriving at once can never collide
+2. `claim` gives them a slot. Finishing chains comes first: the open slot at the highest generation, ties to the lowest chain number, so a held or busy chain is simply skipped. With nothing open, a new chain opens, up to `MAX_CHAINS`. Because the database itself refuses to put two people in the same slot or open the same chain number twice, two participants arriving at once can never collide
 3. `save` stores each screen’s data as the participant goes
 4. `submit` checks the recall for clear fails
 5. `finish` decides the recall once the final questions are in
 
-Every check runs before the next generation reads the recall, so a recall that fails is replaced instead of passed on. A clear fail at submit (containing the AI word, or not typed according to the typing log) is excluded, and the same generation opens again for a new participant. So is a recall whose writer reports outside help in the final questions. A recall that is nearly empty (under 10 words and under a quarter of the words it read), that shares too few words with the text it read, or whose writer failed the instructed-response item, holds the chain until someone reads it and decides with `npm run release`. Every exclusion and every held chain posts a line to Slack. Anything else has its spacing cleaned up and becomes the chain’s next text. The participant never finds out which happened.
+Every check runs before the next generation reads the recall, so a recall that fails is replaced instead of passed on. A clear fail at submit (containing the AI word, or not typed according to the typing log) is excluded, and the same generation opens again for a new participant. So is a recall whose writer reports outside help in the final questions. A recall that is nearly empty (under 10 words and under a quarter of the words it read), shares under 15% of its longer words with the text it read, or whose writer failed the instructed-response item holds the chain until released with `npm run release`. Every exclusion and every held chain posts a line to Slack. All acceptable recall text is cleaned for consistent spacing and becomes the chain’s next text.
 
-Someone who leaves while holding a slot (a reload, a closed tab, or 10 minutes away from the tab) loses it, and the generation runs again. Their row keeps everything they filled in, and if they come back they see a reference code to email about payment. A slot nobody comes back to is freed after an hour.
+Someone who leaves while holding a slot (a reload, a closed tab, or 10 minutes away from the tab) loses it, and the generation runs again. Their row keeps everything they filled in, and if they come back they see a reference code to email about payment. Abandoned slots are freed after an hour.
 
 ## Files
 
 ```
 whispers/
 ├── src/
-│   ├── env.js                    # the settings the server needs, by name
+│   ├── env.js                    # server settings, by name
 │   ├── hooks.server.js           # security headers on every response
 │   ├── routes/
-│   │   ├── +page.svelte          # starts the session and runs the study
+│   │   ├── +page.svelte          # starts session and runs study
 │   │   ├── +layout.svelte        # page shell, blocks phones and tablets
-│   │   └── api/                  # the five server routes: start, claim, save, submit, finish
+│   │   └── api/                  # server routes: start, claim, save, submit, finish
 │   └── lib/
 │       ├── timeline.js           # every screen, in order (jsPsych)
-│       ├── materials.js          # the four paragraphs, the Latin square, the reading time
-│       ├── api.js                # how the browser calls the server routes
+│       ├── materials.js          # the four paragraphs, Latin square ordering, reading time
+│       ├── api.js                # browser calls the server routes
 │       ├── components/
 │       │   ├── ReadScreen.svelte     # the text, locked until the reading time is up
-│       │   ├── RecallScreen.svelte   # the recall box and its typing log
-│       │   ├── HiddenNote.svelte     # the instructions only an AI sees
+│       │   ├── RecallScreen.svelte   # recall box and its typing log
+│       │   ├── HiddenNote.svelte     # hidden AI instructions
 │       │   └── JSPsych.svelte        # runs the timeline and saves each screen
 │       └── server/
-│           ├── pb.js             # the server’s login to PocketBase, and the study key check
+│           ├── pb.js             # server login to PocketBase, study key check
 │           ├── input.js          # size and shape checks on everything the browser sends
-│           ├── gate.js           # the recall checks and the spacing cleanup
-│           ├── slack.js          # the Slack line for each exclusion and held chain
+│           ├── gate.js           # recall checks and the spacing cleanup
+│           ├── slack.js          # Slack message for each exclusion and held chain
 │           └── chain.js          # reopening, advancing and abandoning a slot
 ├── pocketbase/
-│   ├── collections.json          # the database schema
-│   ├── CONVENTIONS.md            # how and why the schema is set up this way
-│   ├── import_schema.js          # adds the schema to a PocketBase instance
-│   ├── seed_chains.js            # creates the chains
-│   ├── reset_test.js             # resets the test chains and deletes test rows
+│   ├── collections.json          # database schema
+│   ├── CONVENTIONS.md            # database schema explanations/conventions/reasoning
+│   ├── import_schema.js          # adds schema to a PocketBase instance
+│   ├── seed_chains.js            # creates chains
+│   ├── reset_test.js             # resets test chains and deletes test rows
 │   ├── release.js                # decides a held recall
 │   └── export_responses.js       # saves every row to exports/ for the analysis
 ├── tests/
-│   └── flow.js                   # end-to-end check of the chain logic
+│   └── flow.js                   # end-to-end check of chain logic
 ├── static/                       # favicon and robots.txt
 └── wrangler.jsonc                # Cloudflare settings
 ```
 
 ## Changing it for a new study
 
-Every setting sits at the top of the file that uses it. These are the ones a new study is likely to change:
+Every setting sits at the top of the file that uses it. Here are ones you probably will need to change for your own study:
 
-| Setting | Where |
+| Setting | Filepath |
 |---|---|
-| The texts and their reading orders | `PARAGRAPHS` and `ORDERS` in `src/lib/materials.js` |
-| The reading speed behind the minimum reading time (400 words per minute) | `readingFloorMs` in `src/lib/materials.js` |
-| Whether everyone goes to test chains (a pilot on the real link) | `PILOT_MODE` in `src/routes/api/start/+server.js` |
+| Texts and their reading orders | `PARAGRAPHS` and `ORDERS` in `src/lib/materials.js` |
+| Reading speed behind the minimum reading time (400 words per minute) | `readingFloorMs` in `src/lib/materials.js` |
+| Pilot mode or real study? | `PILOT_MODE` in `src/routes/api/start/+server.js` |
 | Generations per chain | `GENERATIONS` in `src/lib/server/chain.js` |
-| The cap on chains | `MAX_CHAINS` in `src/lib/server/chain.js` |
-| How long before an abandoned slot is freed | `STALE_MS` in `src/routes/api/claim/+server.js` |
-| Time away from the tab before a session ends | `TIMEOUT_MS` in `src/lib/components/JSPsych.svelte` |
-| The recall checks: near-empty, not typed, off-topic | `MIN_WORDS`, `MIN_WORD_SHARE`, `MIN_TYPED_SHARE` and `MIN_OVERLAP` in `src/lib/server/gate.js` |
-| What counts as one large insertion | `LARGE_INSERTION` in `src/lib/components/RecallScreen.svelte` |
+| Maximum amount of chains | `MAX_CHAINS` in `src/lib/server/chain.js` |
+| Duration before an abandoned slot is freed | `STALE_MS` in `src/routes/api/claim/+server.js` |
+| Time away from study tab before a session ends | `TIMEOUT_MS` in `src/lib/components/JSPsych.svelte` |
+| Recall checks: near-empty, not typed, off-topic | `MIN_WORDS`, `MIN_WORD_SHARE`, `MIN_TYPED_SHARE` and `MIN_OVERLAP` in `src/lib/server/gate.js` |
+| What counts as one large text insertion | `LARGE_INSERTION` in `src/lib/components/RecallScreen.svelte` |
 | The AI canary word (the hidden note has to ask for the same word) | `CANARY` in `src/lib/server/gate.js` and `src/lib/components/HiddenNote.svelte` |
-| Consent, debrief, screening and the final questions | `src/lib/timeline.js` |
-| The contact email and the Prolific completion URL | `src/lib/config.js` |
+| Consent, debrief, screening and final questions | `src/lib/timeline.js` |
+| Contact email and Prolific completion URL | `src/lib/config.js` |
 | How many chains exist at the start | `npm run seed` (see Commands) |
 
 ## Setup
 
-The app is built with SvelteKit and jsPsych, stores its data in PocketBase, and runs on Cloudflare Workers.
+This app is built with SvelteKit and jsPsych, stores its data in PocketBase, and runs on Cloudflare Workers.
 
 1. Copy `.env.example` to `.env`, add a PocketBase superuser login, and run `npm run import-schema`. This only adds the `whispers_` collections and never deletes anything, so it is safe on a shared instance. Then remove the superuser lines
 2. In the PocketBase admin, create one record in `whispers_app`. This is the only login the server uses, and it can only reach the `whispers_` collections. Put it in `.env` as `PB_APP_EMAIL` and `PB_APP_PASSWORD`
@@ -138,6 +138,7 @@ Chains and database:
     npm run release <row id> pass            pass it on (or: exclude, so the generation runs again)
     npm run places                           how many places to add on Prolific right now
     npm run export                           save every row to exports/whispers_responses.json (gitignored)
+    npm run export -- <file path>            save every row to that file instead
 
 Secrets on Cloudflare. They belong to the Worker, so they are set once per account and survive deploys.
 
